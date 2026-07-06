@@ -1,0 +1,34 @@
+# systemd-Unit für den Veranstaltungszeitplaner
+# Installation:
+#   cp veranstaltungszeitplaner.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now veranstaltungszeitplaner
+
+[Unit]
+Description=Veranstaltungszeitplaner (Wochenplaner-WebApp, Node.js/Express)
+After=network.target
+# Bei Betrieb mit MongoDB auf demselben Server die folgenden beiden Zeilen
+# einkommentieren, damit die App nach MongoDB startet:
+# Wants=mongod.service
+# After=mongod.service
+
+[Service]
+Type=simple
+User=veranstaltungszeitplaner
+Group=veranstaltungszeitplaner
+WorkingDirectory=/opt/veranstaltungszeitplaner/backend
+EnvironmentFile=/opt/veranstaltungszeitplaner/backend/.env
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+# Härtung
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+# Schreibzugriff nur dort, wo die App ihn braucht (JSON-Store und Bild-Uploads):
+ReadWritePaths=/opt/veranstaltungszeitplaner/backend/data /opt/veranstaltungszeitplaner/backend/uploads
+
+[Install]
+WantedBy=multi-user.target

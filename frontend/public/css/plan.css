@@ -1,0 +1,488 @@
+/* plan.css – Wochenraster, Terminkarten, Menü-Popover, Freigabe-Dialog */
+
+/* ---- Kopfzeile der Planseite ---- */
+
+.plan-header .header-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.plan-title {
+  flex: 0 1 420px;
+  min-width: 140px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.plan-title:hover:not(:read-only) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.plan-title:focus {
+  outline: none;
+  background: #fff;
+  color: var(--text);
+  border-color: var(--accent-dark);
+}
+
+.plan-title:read-only {
+  cursor: default;
+}
+
+/* ---- Scrollbereich + Raster ---- */
+
+#plan-main {
+  padding: 12px;
+}
+
+.grid-scroll {
+  overflow: auto;
+  max-height: calc(100vh - 84px);
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 56px repeat(var(--day-count, 7), minmax(170px, 1fr));
+  grid-template-rows: auto 1fr;
+  min-width: max-content;
+  position: relative;
+}
+
+/* Ecke oben links: in beide Richtungen sticky */
+.grid-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  background: var(--panel);
+  border-bottom: 2px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+/* Tagesköpfe: sticky oben */
+.day-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 8px 6px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--border);
+  border-left: 1px solid var(--border);
+  text-align: center;
+}
+
+.day-head-short {
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.day-head-long {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+/* Zeitleiste links: sticky links; enthält absolut positionierte Stundenlabels */
+.time-col {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+}
+
+.time-label {
+  position: absolute;
+  right: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--text-soft);
+  background: var(--panel);
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+/* Tagesspalten: Stundenlinien kräftig, 15-min-Hilfslinien dezent */
+.day-col {
+  position: relative;
+  border-left: 1px solid var(--border);
+  background-image:
+    /* kräftige Stundenlinie (oben gezeichnet) */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--hour-height) - 1px),
+      #c9d2dc calc(var(--hour-height) - 1px),
+      #c9d2dc var(--hour-height)
+    ),
+    /* dezente 15-Minuten-Hilfslinie */
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--quarter-height) - 1px),
+      #eef1f5 calc(var(--quarter-height) - 1px),
+      #eef1f5 var(--quarter-height)
+    );
+}
+
+.day-col:hover {
+  background-color: rgba(0, 121, 191, 0.03);
+}
+
+/* ---- Terminkarten (Trello-artig) ---- */
+
+.card {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(9, 30, 66, 0.09);
+  overflow: hidden;
+  min-height: 10px;
+  user-select: none;
+  touch-action: none; /* Pointer-Drag auch auf Touchgeräten */
+  cursor: grab;
+  z-index: 2;
+}
+
+body[data-mode="readonly"] .card {
+  cursor: default;
+}
+
+.card:hover {
+  box-shadow: 0 3px 8px rgba(9, 30, 66, 0.28);
+  z-index: 3;
+}
+
+.card.dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.card.resizing {
+  z-index: 4;
+}
+
+/* Farbige Kopfleiste */
+.card-colorbar {
+  flex: 0 0 6px;
+  background: var(--accent);
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 5px 6px 3px 8px;
+}
+
+.card-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-mute-icon {
+  display: inline-flex;
+  color: var(--text-soft);
+  flex: 0 0 auto;
+}
+
+.card-time {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-actions {
+  display: flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.card-actions .icon-btn {
+  width: 22px;
+  height: 22px;
+}
+
+/* Chevron dreht sich im eingeklappten Zustand */
+.card-collapse-btn svg {
+  transition: transform 0.15s ease;
+}
+
+.card.collapsed .card-collapse-btn svg {
+  transform: rotate(-90deg);
+}
+
+.card-body {
+  padding: 0 8px 8px;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+
+.card.collapsed .card-body {
+  display: none;
+}
+
+.card-image {
+  display: block;
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin: 2px 0 6px;
+}
+
+.card-desc {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text);
+  white-space: pre-line; /* mehrzeilige Plaintext-Beschreibung */
+  overflow: hidden;
+}
+
+/* Stummgeschaltet: ausgegraut/halbtransparent */
+.card.muted {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+
+/* Resize-Griff am unteren Rand */
+.card-resize {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.card-resize::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(9, 30, 66, 0.25);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.card:hover .card-resize::after {
+  opacity: 1;
+}
+
+/* Geist-Vorschau beim Ziehen (rastet am 15-min-Raster ein) */
+.card-ghost {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  border: 2px dashed var(--accent);
+  border-radius: 6px;
+  background: rgba(0, 121, 191, 0.12);
+  color: var(--accent-dark);
+  font-size: 11.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3px;
+  pointer-events: none;
+  z-index: 5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Dreipunkt-Menü (Popover) ---- */
+
+.popover-menu {
+  position: fixed;
+  z-index: 900;
+  min-width: 180px;
+  background: var(--panel);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-strong);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--accent-light);
+  outline: none;
+}
+
+.menu-icon {
+  display: inline-flex;
+  color: var(--text-soft);
+}
+
+.menu-item-danger {
+  color: var(--danger);
+}
+
+.menu-item-danger .menu-icon {
+  color: var(--danger);
+}
+
+.menu-item-danger:hover {
+  background: #fdecea;
+}
+
+/* ---- Termin-Dialog: Farben und Bild ---- */
+
+.color-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.color-swatch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-chip {
+  width: 32px;
+  height: 24px;
+  border-radius: 5px;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 0 1px rgba(9, 30, 66, 0.15);
+}
+
+.color-swatch input:checked + .color-chip {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+.color-swatch input:focus-visible + .color-chip {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.upload-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.image-preview {
+  margin-top: 8px;
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ---- Freigabe-Dialog ---- */
+
+.share-row {
+  margin-bottom: 16px;
+}
+
+.share-line {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.share-line input {
+  flex: 1 1 auto;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+/* ---- Fehlerbox ---- */
+
+.fatal-box {
+  max-width: 420px;
+  margin: 60px auto;
+  background: var(--panel);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+  text-align: center;
+}
+
+.fatal-box h2 {
+  margin-top: 0;
+}
+
+/* ---- Responsive bis Tablet ---- */
+
+@media (max-width: 900px) {
+  .plan-header {
+    row-gap: 8px;
+  }
+  .plan-title {
+    flex: 1 1 160px;
+  }
+  .grid {
+    grid-template-columns: 48px repeat(var(--day-count, 7), minmax(150px, 1fr));
+  }
+  .grid-scroll {
+    max-height: calc(100vh - 120px);
+  }
+}

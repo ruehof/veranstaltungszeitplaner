@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Veranstaltungszeitplaner</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+  <header class="app-header">
+    <span class="app-logo">
+      <!-- Kalender-Icon inline, keine externen Ressourcen -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Veranstaltungszeitplaner
+    </span>
+  </header>
+
+  <main class="start-main">
+    <section class="panel">
+      <h2>Neuen Wochenplan erstellen</h2>
+      <form id="create-form" novalidate>
+        <label class="field">
+          <span class="field-label">Titel</span>
+          <input id="cf-title" name="title" type="text" required maxlength="120"
+                 placeholder="z. B. Trainingswoche KW 28" autocomplete="off">
+        </label>
+
+        <fieldset class="field">
+          <legend class="field-label">Tage</legend>
+          <div class="radio-row">
+            <label class="radio-option">
+              <input type="radio" name="days" value="workweek" checked>
+              <span>Mo–Fr</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="days" value="fullweek">
+              <span>Mo–So</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">Von</span>
+            <select id="cf-start-hour"></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Bis</span>
+            <select id="cf-end-hour"></select>
+          </label>
+        </div>
+
+        <button id="cf-submit" type="submit" class="btn btn-primary btn-large">Plan erstellen</button>
+      </form>
+      <p class="hint">
+        Nach dem Erstellen findest du auf der Planseite unter „Freigeben" den Bearbeitungslink
+        und einen Nur-Lese-Link zum Teilen.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Meine Pläne</h2>
+      <ul id="plan-list" class="plan-list"></ul>
+      <p id="plan-list-empty" class="hint">Noch keine Pläne auf diesem Gerät gespeichert.</p>
+    </section>
+  </main>
+
+  <div id="toast-region"></div>
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>

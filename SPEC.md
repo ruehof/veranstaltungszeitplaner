@@ -1,0 +1,150 @@
+# Veranstaltungszeitplaner – Spezifikation
+
+WebApp zum Erstellen und Freigeben von Wochenplänen. Horizontale Achse: Wochentage (Mo–So),
+vertikale Achse: Uhrzeiten (Standard 06:00–20:00) im 15-Minuten-Raster. Termine werden als
+Karten platziert (Drag & Drop), enthalten Bild + Textbeschreibung, sind ein-/ausklappbar und
+haben ein Dreipunkt-Menü (Löschen, Stummschalten, Duplizieren). Optik angelehnt an Trello-Karten.
+
+## Technologie-Entscheidungen
+
+- **Backend:** Node.js ≥ 18, Express. Kein Build-Schritt.
+- **Datenbank:** MongoDB (Treiber: `mongodb`). Fallback für lokale Entwicklung ohne MongoDB:
+  einfacher JSON-Datei-Store unter `backend/data/db.json`, aktiv wenn `MONGODB_URI` nicht gesetzt ist.
+  Beide Implementierungen hinter einer gemeinsamen Storage-Schnittstelle (`backend/src/storage/`).
+- **Frontend:** Vanilla HTML/CSS/JS (ES-Module), kein Framework, kein Bundler.
+  Wird vom Express-Server statisch ausgeliefert (`frontend/public/`).
+- **Hosting-Ziel:** Debian Linux, systemd-Dienst, optional nginx als Reverse Proxy.
+- **Bild-Uploads:** `multer`, Ablage unter `backend/uploads/`, ausgeliefert unter `/uploads/<datei>`.
+
+## Ordnerstruktur
+
+```
+Veranstaltungszeitplaner/
+├── SPEC.md                  ← dieses Dokument
+├── README.md                ← Überblick, Quickstart (Doku-Agent)
+├── backend/                 ← Backend-Agent
+│   ├── package.json
+│   ├── server.js            ← Einstiegspunkt
+│   ├── .env.example         ← PORT, MONGODB_URI, UPLOAD_DIR
+│   └── src/
+│       ├── routes/          ← API-Routen
+│       ├── storage/         ← storage.js (Interface), mongo.js, jsonfile.js
+│       └── ...
+├── frontend/                ← Frontend-Agent
+│   └── public/
+│       ├── index.html       ← Startseite: Plan anlegen / Plan öffnen
+│       ├── plan.html        ← Wochenplan-Ansicht (Grid + Karten)
+│       ├── css/
+│       └── js/
+└── deploy/                  ← Deployment-Agent
+    ├── DEPLOYMENT.md        ← Schritt-für-Schritt-Anleitung Debian
+    ├── veranstaltungszeitplaner.service
+    └── nginx-example.conf
+```
+
+Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad relativ zu
+`backend/server.js`, per `path.join(__dirname, "..", "frontend", "public")`).
+
+## Datenmodell
+
+### Schedule (Wochenplan)
+
+```json
+{
+  "id": "string (12 Zeichen, URL-sicher, zufällig)",
+  "title": "string",
+  "editToken": "string (24 Zeichen, zufällig) – berechtigt zum Bearbeiten",
+  "shareId": "string (12 Zeichen, zufällig) – Nur-Lese-Freigabelink",
+  "settings": {
+    "startHour": 6,
+    "endHour": 20,
+    "days": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+  },
+  "createdAt": "ISO-8601",
+  "updatedAt": "ISO-8601"
+}
+```
+
+### Card (Terminkarte)
+
+```json
+{
+  "id": "string (12 Zeichen, zufällig)",
+  "scheduleId": "string",
+  "title": "string",
+  "description": "string (mehrzeilig, Plaintext)",
+  "imageUrl": "string | null  (z.B. /uploads/abc123.jpg)",
+  "day": 0,
+  "startMinutes": 480,
+  "durationMinutes": 90,
+  "color": "string | null (CSS-Farbe für Kartenleiste)",
+  "collapsed": false,
+  "muted": false,
+  "createdAt": "ISO-8601",
+  "updatedAt": "ISO-8601"
+}
+```
+
+Regeln:
+- `day`: Index in `settings.days` (0 = erster Tag).
+- `startMinutes`: Minuten seit Mitternacht, **Vielfaches von 15**, innerhalb `startHour*60 … endHour*60`.
+- `durationMinutes`: Vielfaches von 15, min. 15. Ende darf `endHour*60` nicht überschreiten.
+- Server validiert diese Regeln und rundet nicht selbst – ungültige Werte ⇒ HTTP 400.
+- `muted: true` ⇒ Karte wird im Frontend ausgegraut/halbtransparent dargestellt.
+
+## API-Vertrag (alle Routen unter `/api`)
+
+Autorisierung zum Bearbeiten: Header `X-Edit-Token: <editToken>`.
+Fehlt/falsch ⇒ 403 `{ "error": "..." }`. Alle Bodies/Antworten JSON.
+
+| Methode | Pfad | Auth | Beschreibung |
+|---|---|---|---|
+| POST | `/api/schedules` | – | Plan anlegen. Body: `{title, settings?}`. Antwort 201: vollständiges Schedule inkl. `editToken`. |
+| GET | `/api/schedules/:id` | Token | Plan + Karten: `{schedule, cards}`. `editToken` wird NUR bei gültigem Token mitgeliefert. |
+| GET | `/api/share/:shareId` | – | Nur-Lese-Zugriff: `{schedule, cards}` OHNE `editToken`. |
+| PATCH | `/api/schedules/:id` | Token | Titel/Settings ändern. Antwort: aktualisiertes Schedule. |
+| DELETE | `/api/schedules/:id` | Token | Plan + zugehörige Karten + deren Upload-Bilder löschen. Antwort 204. |
+| POST | `/api/schedules/:id/cards` | Token | Karte anlegen. Body: Card-Felder ohne `id/scheduleId/createdAt`. Antwort 201: Karte. |
+| PATCH | `/api/schedules/:id/cards/:cardId` | Token | Teilupdate (Position, Text, `muted`, `collapsed`, …). Antwort: Karte. |
+| POST | `/api/schedules/:id/cards/:cardId/duplicate` | Token | Karte duplizieren (gleiche Position, Titel + „ (Kopie)“). Antwort 201: neue Karte. |
+| DELETE | `/api/schedules/:id/cards/:cardId` | Token | Karte löschen (inkl. Upload-Bild, falls kein anderer Verweis). Antwort 204. |
+| POST | `/api/schedules/:id/uploads` | Token | `multipart/form-data`, Feld `image` (jpg/png/webp/gif, max 5 MB). Antwort 201: `{url}`. |
+
+Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statuscode.
+404 bei unbekannter `id`/`shareId`/`cardId`.
+
+## Frontend-Verhalten
+
+### index.html (Startseite)
+- Formular „Neuen Wochenplan erstellen“ (Titel) ⇒ POST `/api/schedules` ⇒ Weiterleitung auf
+  `plan.html?id=<id>&token=<editToken>`.
+- Hinweisbox: Bearbeitungslink + Freigabelink werden auf der Planseite angezeigt.
+- Zuletzt erstellte Pläne aus `localStorage` auflisten (id, titel, token lokal merken).
+
+### plan.html (Wochenplan)
+- URL-Parameter: `id` + `token` (Bearbeitungsmodus) **oder** `share` (Nur-Lese-Modus über `/api/share/`).
+- Raster: Spalten = Tage, Zeilen = Stunden (mit sichtbaren Stundenlinien, feinere 15-min-Hilfslinien),
+  Zeitleiste links, Tagesköpfe oben (sticky).
+- Karten absolut im Grid positioniert: `top`/`height` aus `startMinutes`/`durationMinutes` berechnet.
+- **Drag & Drop** mit Pointer Events (kein HTML5-DnD): Karte greifen, Geist-Vorschau am
+  15-Minuten-Raster einrasten, beim Loslassen PATCH an Server. Auch Tag-Wechsel per Drag.
+- **Größe ändern:** Griff am unteren Kartenrand zieht `durationMinutes` (15-min-Raster).
+- **Karte:** farbige Kopfleiste, Titel, Uhrzeit (z.B. „08:00–09:30“), Bild (falls vorhanden),
+  Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung ein/aus (`collapsed` wird gespeichert).
+- **Dreipunkt-Menü** oben rechts auf der Karte: „Duplizieren“, „Stummschalten“/„Aktivieren“, „Löschen“
+  (Löschen mit Bestätigung). Menü schließt bei Klick außerhalb.
+- **Karte anlegen:** Button „+ Termin“ sowie Klick auf freie Rasterzelle ⇒ Dialog (Titel,
+  Beschreibung, Bild-Upload, Farbe, Tag, Start, Dauer). Gleicher Dialog zum Bearbeiten
+  (Doppelklick auf Karte oder Menüpunkt „Bearbeiten“).
+- **Freigeben:** Button „Freigeben“ zeigt beide Links (Bearbeiten mit Token, Nur-Lesen mit shareId)
+  mit „Kopieren“-Buttons.
+- Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und Ein-/Ausklappen (lokal).
+- Sprache der Oberfläche: **Deutsch**. Design: hell, freundlich, Trello-artige Karten mit
+  abgerundeten Ecken und dezentem Schatten; Akzentfarbe Blau (#0079bf-Familie).
+
+## Konventionen
+
+- IDs/Tokens: `crypto.randomBytes` → base64url.
+- Kein Login/Accounts in v1 – Zugriffsschutz ausschließlich über unerratbare Links (Token/shareId).
+- Zeiten sind reine Wochenraster-Zeiten (kein Datum, keine Zeitzonenlogik).
+- Code-Kommentare und UI-Texte auf Deutsch, Bezeichner im Code auf Englisch.

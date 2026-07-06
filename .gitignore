@@ -1,0 +1,13 @@
+# Abhängigkeiten
+node_modules/
+
+# Lokale Konfiguration
+.env
+
+# Laufzeitdaten (JSON-Datei-Store und hochgeladene Bilder)
+backend/data/
+backend/uploads/
+
+# Betriebssystem-Reste
+Thumbs.db
+.DS_Store
