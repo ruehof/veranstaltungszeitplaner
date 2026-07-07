@@ -225,6 +225,7 @@ if (mockEnabled) {
         durationMinutes: body.durationMinutes ?? 60,
         color: body.color || null,
         bgColor: body.bgColor || null,
+        textColor: body.textColor || null,
         collapsed: Boolean(body.collapsed),
         muted: Boolean(body.muted),
         createdAt: nowIso(),

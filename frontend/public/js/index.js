@@ -1,7 +1,7 @@
 // index.js – Startseite: Plan erstellen + Liste "Meine Pläne"
 
 import "./mock.js"; // aktiviert sich nur bei ?mock=1
-import { api } from "./api.js";
+import { api, setEditToken } from "./api.js";
 import { listPlans, rememberPlan, removePlan } from "./storage.js";
 import { showToast } from "./toast.js";
 import { withMock } from "./util.js";
@@ -13,6 +13,8 @@ const titleInput = document.getElementById("cf-title");
 const submitBtn = document.getElementById("cf-submit");
 const planList = document.getElementById("plan-list");
 const planListEmpty = document.getElementById("plan-list-empty");
+const importBtn = document.getElementById("import-btn");
+const importFile = document.getElementById("import-file");
 
 // Tage/Datum/Uhrzeiten: gemeinsames Formularmodul (auch im Einstellungen-Dialog der Planseite)
 const settingsForm = createScheduleSettingsForm(document.getElementById("cf-settings"), {
@@ -45,6 +47,68 @@ form.addEventListener("submit", async (event) => {
   } catch (err) {
     showToast(err.message || "Plan konnte nicht erstellt werden.");
     submitBtn.disabled = false;
+  }
+});
+
+// ---- Import aus JSON-Datei ---------------------------------------------------
+
+importBtn.addEventListener("click", () => importFile.click());
+
+importFile.addEventListener("change", async () => {
+  const file = importFile.files && importFile.files[0];
+  if (!file) return;
+  importBtn.disabled = true;
+  try {
+    const data = JSON.parse(await file.text());
+    if (
+      !data ||
+      typeof data.title !== "string" ||
+      typeof data.settings !== "object" ||
+      !Array.isArray(data.cards)
+    ) {
+      throw new Error("Das ist keine gültige Wochenplan-Datei (JSON-Export erwartet).");
+    }
+
+    // Neuen Plan anlegen, dann die Karten einzeln übernehmen
+    const schedule = await api.createSchedule({ title: data.title, settings: data.settings });
+    setEditToken(schedule.editToken);
+
+    let failed = 0;
+    for (const card of data.cards) {
+      try {
+        await api.createCard(schedule.id, {
+          title: typeof card.title === "string" && card.title.trim() ? card.title : "Ohne Titel",
+          description: typeof card.description === "string" ? card.description : "",
+          imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : null,
+          color: typeof card.color === "string" ? card.color : null,
+          bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
+          textColor: typeof card.textColor === "string" ? card.textColor : null,
+          day: card.day,
+          startMinutes: card.startMinutes,
+          durationMinutes: card.durationMinutes,
+          collapsed: Boolean(card.collapsed),
+          muted: Boolean(card.muted),
+        });
+      } catch {
+        failed++; // z. B. Karte passt nicht ins Raster – restliche Karten trotzdem übernehmen
+      }
+    }
+
+    rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
+    const target = withMock(
+      `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
+    );
+    if (failed > 0) {
+      showToast(`${failed} von ${data.cards.length} Terminen konnten nicht übernommen werden.`);
+      setTimeout(() => (location.href = target), 1800);
+    } else {
+      location.href = target;
+    }
+  } catch (err) {
+    showToast(err.message || "Import fehlgeschlagen.");
+  } finally {
+    importBtn.disabled = false;
+    importFile.value = "";
   }
 });
 

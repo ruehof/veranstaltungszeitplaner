@@ -83,6 +83,7 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "durationMinutes": 90,
   "color": "string | null (CSS-Farbe für Kartenleiste)",
   "bgColor": "string | null (CSS-Hintergrundfarbe des Kartenkörpers, null = Weiß)",
+  "textColor": "string | null (CSS-Textfarbe der Karte, null = Standard dunkel)",
   "collapsed": false,
   "muted": false,
   "createdAt": "ISO-8601",
@@ -163,7 +164,20 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   (Doppelklick auf Karte oder Menüpunkt „Bearbeiten“).
 - **Freigeben:** Button „Freigeben“ zeigt beide Links (Bearbeiten mit Token, Nur-Lesen mit shareId)
   mit „Kopieren“-Buttons.
-- Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und Ein-/Ausklappen (lokal).
+- Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und
+  Ein-/Ausklappen (lokal). Der Logo-Link zur Startseite ist deaktiviert, damit es keinen
+  Weg zur Plan-Erstellung gibt; „Exportieren“ bleibt verfügbar.
+- **Beschreibung mit Links:** `https://…`-Adressen werden automatisch verlinkt, eigener
+  Linktext per `[Text](https://…)`. Rendering ohne innerHTML (XSS-sicher), nur http(s),
+  Links öffnen in neuem Tab (`rel="noopener noreferrer"`).
+- **Textfarbe:** Palette `CARD_TEXT_COLORS` (Standard dunkel, Weiß, Hellgelb, Grau sowie
+  dunkle Töne); bei gesetzter `textColor` erben Titel, Zeit, Beschreibung und Icons die Farbe.
+- **Export/Import:** „Exportieren“ (Planseite, beide Modi) lädt den Plan als JSON-Datei
+  herunter: `{format: "veranstaltungszeitplaner", version: 1, title, settings, cards[]}`
+  (Karten ohne `id`/`scheduleId`). „Plan aus JSON-Datei importieren…“ (Startseite) legt
+  daraus einen NEUEN Plan mit eigenen Links an; Karten, die nicht ins Raster passen,
+  werden gezählt übersprungen. Bild-URLs werden unverändert übernommen (funktionieren
+  nur, solange die Uploads auf demselben Server existieren).
 - Sprache der Oberfläche: **Deutsch**. Design: hell, freundlich, Trello-artige Karten mit
   abgerundeten Ecken und dezentem Schatten; Akzentfarbe Blau (#0079bf-Familie).
 

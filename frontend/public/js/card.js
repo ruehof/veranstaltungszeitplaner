@@ -22,6 +22,10 @@ export function createCardElement(card, opts) {
   el.style.top = (card.startMinutes - startHour * 60) * pxPerMin + "px";
   el.style.height = card.durationMinutes * pxPerMin + "px";
   if (card.bgColor) el.style.background = card.bgColor;
+  if (card.textColor) {
+    el.style.color = card.textColor;
+    el.classList.add("custom-text"); // Titel/Zeit/Beschreibung/Icons erben die Farbe (CSS)
+  }
 
   // Farbige Kopfleiste
   const colorBar = document.createElement("div");
@@ -106,7 +110,7 @@ export function createCardElement(card, opts) {
   if (card.description) {
     const desc = document.createElement("p");
     desc.className = "card-desc";
-    desc.textContent = card.description; // Plaintext, Zeilenumbrüche via CSS pre-line
+    appendDescription(desc, card.description); // Plaintext + Links, Zeilenumbrüche via CSS pre-line
     body.append(desc);
   }
   el.append(body);
@@ -120,4 +124,25 @@ export function createCardElement(card, opts) {
   }
 
   return el;
+}
+
+/**
+ * Beschreibungstext mit Links rendern – ohne innerHTML (XSS-sicher).
+ * Unterstützt "[Text](https://…)" sowie automatisch verlinkte http(s)-URLs.
+ */
+function appendDescription(container, text) {
+  const linkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<>"')\]]+)/g;
+  let last = 0;
+  let match;
+  while ((match = linkRe.exec(text))) {
+    if (match.index > last) container.append(text.slice(last, match.index));
+    const a = document.createElement("a");
+    a.href = match[2] || match[3]; // per Regex nur http(s)-URLs
+    a.textContent = match[1] || match[3];
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    container.append(a);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) container.append(text.slice(last));
 }

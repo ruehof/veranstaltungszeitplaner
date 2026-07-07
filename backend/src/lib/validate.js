@@ -166,6 +166,15 @@ export function sanitizeCardInput(body, { partial = false } = {}) {
     out.bgColor = null;
   }
 
+  if (body.textColor !== undefined) {
+    if (body.textColor !== null && typeof body.textColor !== "string") {
+      throw new HttpError(400, "textColor muss ein Text (CSS-Farbe) oder null sein.");
+    }
+    out.textColor = body.textColor;
+  } else if (!partial) {
+    out.textColor = null;
+  }
+
   for (const flag of ["collapsed", "muted"]) {
     if (body[flag] !== undefined) {
       if (typeof body[flag] !== "boolean") {

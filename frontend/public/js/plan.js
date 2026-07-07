@@ -33,6 +33,7 @@ const els = {
   titleInput: document.getElementById("plan-title"),
   readonlyBadge: document.getElementById("readonly-badge"),
   addBtn: document.getElementById("add-card-btn"),
+  exportBtn: document.getElementById("export-btn"),
   settingsBtn: document.getElementById("settings-btn"),
   settingsDialog: document.getElementById("settings-dialog"),
   settingsForm: document.getElementById("settings-form"),
@@ -341,6 +342,9 @@ function setupHeader() {
   document.title = `${schedule.title} – Veranstaltungszeitplaner`;
   els.titleInput.value = schedule.title;
 
+  // Export als JSON-Datei (im Bearbeitungs- UND Nur-Lese-Modus verfügbar)
+  els.exportBtn.addEventListener("click", exportPlan);
+
   if (readOnly) {
     document.body.dataset.mode = "readonly";
     els.titleInput.readOnly = true;
@@ -348,6 +352,10 @@ function setupHeader() {
     els.addBtn.hidden = true;
     els.settingsBtn.hidden = true;
     els.shareBtn.hidden = true;
+    // Kein Weg zur Plan-Erstellung: Logo-Link zur Startseite deaktivieren
+    const logo = document.querySelector(".app-logo");
+    logo.removeAttribute("href");
+    logo.removeAttribute("title");
     return;
   }
   document.body.dataset.mode = "edit";
@@ -416,6 +424,40 @@ function setupHeader() {
       }
     });
   });
+}
+
+// ---- Export als JSON-Datei --------------------------------------------------------------
+
+/** Plan (Titel, Settings, Karten) als JSON-Datei herunterladen. */
+function exportPlan() {
+  const data = {
+    format: "veranstaltungszeitplaner",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    title: schedule.title,
+    settings: schedule.settings,
+    cards: cards.map((c) => ({
+      title: c.title,
+      description: c.description,
+      imageUrl: c.imageUrl,
+      color: c.color,
+      bgColor: c.bgColor ?? null,
+      textColor: c.textColor ?? null,
+      day: c.day,
+      startMinutes: c.startMinutes,
+      durationMinutes: c.durationMinutes,
+      collapsed: c.collapsed,
+      muted: c.muted,
+    })),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  const safeTitle = schedule.title.replace(/[\\/:*?"<>|]+/g, "").trim() || "wochenplan";
+  link.download = safeTitle + ".json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+  showToast("Plan als JSON-Datei exportiert.", "success");
 }
 
 // ---- Erläuterungs-Popup (Nur-Lese-Link) -----------------------------------------------

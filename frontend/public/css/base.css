@@ -68,6 +68,11 @@ body {
   white-space: nowrap;
 }
 
+/* Im Nur-Lese-Modus wird das href entfernt – dann kein Link-Verhalten zeigen */
+a.app-logo:not([href]) {
+  cursor: default;
+}
+
 /* ---- Buttons ---- */
 
 .btn {

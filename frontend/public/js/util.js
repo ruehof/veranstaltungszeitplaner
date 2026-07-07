@@ -75,6 +75,19 @@ export const CARD_BG_COLORS = [
   { value: "#eef1f4", label: "Hellgrau" },
 ];
 
+/** Textfarben für Karten (heller Text für dunkle Hintergründe, dunkle Töne für helle).
+ *  Leerer value = Standard (dunkel) ⇒ wird als textColor null gespeichert. */
+export const CARD_TEXT_COLORS = [
+  { value: "", label: "Standard (dunkel)" },
+  { value: "#ffffff", label: "Weiß" },
+  { value: "#fdf6cf", label: "Hellgelb" },
+  { value: "#5e6c84", label: "Grau" },
+  { value: "#ae2e24", label: "Dunkelrot" },
+  { value: "#3f6c21", label: "Dunkelgrün" },
+  { value: "#1d3c78", label: "Dunkelblau" },
+  { value: "#6a3f9e", label: "Dunkellila" },
+];
+
 /* ---- Datums-Helfer für Pläne mit konkretem Datumsbereich ---- */
 
 /** Tageskürzel nach JS-Wochentag (Date.getDay(): 0 = Sonntag). */

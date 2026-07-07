@@ -291,6 +291,26 @@ body[data-mode="readonly"] .card {
   overflow: hidden;
 }
 
+.card-desc a {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  word-break: break-all; /* lange URLs sprengen die Karte nicht */
+}
+
+/* Eigene Textfarbe (textColor): Titel, Zeit, Beschreibung und Icons erben sie */
+.card.custom-text .card-title,
+.card.custom-text .card-time,
+.card.custom-text .card-desc,
+.card.custom-text .card-desc a,
+.card.custom-text .card-mute-icon {
+  color: inherit;
+}
+
+.card.custom-text .card-actions .icon-btn {
+  color: inherit;
+  opacity: 0.8;
+}
+
 /* Stummgeschaltet: ausgegraut/halbtransparent */
 .card.muted {
   opacity: 0.55;
@@ -435,6 +455,17 @@ body[data-mode="readonly"] .card {
 .color-swatch input:focus-visible + .color-chip {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* Textfarben-Vorschau: "A" in der jeweiligen Farbe auf neutralem Grund */
+.color-chip-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #97a5b5;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .upload-row {

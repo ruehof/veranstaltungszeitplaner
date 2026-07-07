@@ -22,6 +22,7 @@
     <div class="header-actions">
       <button id="add-card-btn" type="button" class="btn btn-header-primary">+ Termin</button>
       <button id="settings-btn" type="button" class="btn btn-header">Einstellungen</button>
+      <button id="export-btn" type="button" class="btn btn-header">Exportieren</button>
       <button id="share-btn" type="button" class="btn btn-header">Freigeben</button>
     </div>
   </header>
@@ -47,6 +48,7 @@
         <label class="field">
           <span class="field-label">Beschreibung</span>
           <textarea id="cd-desc" rows="3" placeholder="Details, Raum, Material …"></textarea>
+          <span class="hint">Links: https://…-Adressen werden automatisch verlinkt, eigener Linktext per [Text](https://…)</span>
         </label>
 
         <div class="field">
@@ -67,6 +69,11 @@
         <fieldset class="field">
           <legend class="field-label">Hintergrundfarbe</legend>
           <div id="cd-bgcolors" class="color-swatches"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend class="field-label">Textfarbe</legend>
+          <div id="cd-textcolors" class="color-swatches"></div>
         </fieldset>
 
         <div class="field-row">
