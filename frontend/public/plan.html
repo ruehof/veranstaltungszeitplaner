@@ -21,6 +21,7 @@
     </span>
     <div class="header-actions">
       <button id="add-card-btn" type="button" class="btn btn-header-primary">+ Termin</button>
+      <button id="settings-btn" type="button" class="btn btn-header">Einstellungen</button>
       <button id="share-btn" type="button" class="btn btn-header">Freigeben</button>
     </div>
   </header>
@@ -59,8 +60,13 @@
         </div>
 
         <fieldset class="field">
-          <legend class="field-label">Farbe</legend>
+          <legend class="field-label">Farbleiste</legend>
           <div id="cd-colors" class="color-swatches"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend class="field-label">Hintergrundfarbe</legend>
+          <div id="cd-bgcolors" class="color-swatches"></div>
         </fieldset>
 
         <div class="field-row">
@@ -81,6 +87,30 @@
       <footer class="dialog-actions">
         <button type="button" id="cd-cancel" class="btn">Abbrechen</button>
         <button type="submit" id="cd-save" class="btn btn-primary">Speichern</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Dialog: Plan-Einstellungen (Tage, Datum, Uhrzeiten) -->
+  <dialog id="settings-dialog" class="dialog">
+    <form id="settings-form" novalidate>
+      <header class="dialog-head">
+        <h2>Plan-Einstellungen</h2>
+        <button type="button" id="settings-dialog-close" class="icon-btn" title="Schließen" aria-label="Schließen">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </header>
+      <div class="dialog-body">
+        <!-- Tage/Datum/Uhrzeiten – gerendert von scheduleform.js -->
+        <div id="sd-settings"></div>
+        <p class="hint">
+          Termine, die außerhalb des neuen Rasters liegen, bleiben gespeichert,
+          werden aber ausgeblendet, bis das Raster wieder passt.
+        </p>
+      </div>
+      <footer class="dialog-actions">
+        <button type="button" id="sd-cancel" class="btn">Abbrechen</button>
+        <button type="submit" id="sd-save" class="btn btn-primary">Speichern</button>
       </footer>
     </form>
   </dialog>

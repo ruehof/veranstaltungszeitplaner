@@ -61,3 +61,45 @@ export const CARD_COLORS = [
   { value: "#00c2e0", label: "Türkis" },
   { value: "#ff78cb", label: "Pink" },
 ];
+
+/** Hintergrundfarben für den Kartenkörper (Pastelltöne passend zu CARD_COLORS).
+ *  Leerer value = Standard (Weiß) ⇒ wird als bgColor null gespeichert. */
+export const CARD_BG_COLORS = [
+  { value: "", label: "Weiß (Standard)" },
+  { value: "#eaf6e4", label: "Hellgrün" },
+  { value: "#fdf6cf", label: "Hellgelb" },
+  { value: "#ffeed9", label: "Hellorange" },
+  { value: "#fde6e3", label: "Hellrot" },
+  { value: "#f4e9fa", label: "Helllila" },
+  { value: "#e0f0f9", label: "Hellblau" },
+  { value: "#eef1f4", label: "Hellgrau" },
+];
+
+/* ---- Datums-Helfer für Pläne mit konkretem Datumsbereich ---- */
+
+/** Tageskürzel nach JS-Wochentag (Date.getDay(): 0 = Sonntag). */
+export const WEEKDAY_KEYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+/** "JJJJ-MM-TT" als lokales Datum parsen (null bei ungültig). */
+export function parseISODate(iso) {
+  if (typeof iso !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const date = new Date(iso + "T00:00:00");
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/** Datum + n Tage (neues Date-Objekt). */
+export function addDays(date, n) {
+  const out = new Date(date);
+  out.setDate(out.getDate() + n);
+  return out;
+}
+
+/** Datum als "TT.MM.JJJJ" formatieren. */
+export function formatDateDE(date) {
+  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+/** Anzahl Kalendertage von from bis to (einschließlich); NaN bei ungültig. */
+export function daySpan(from, to) {
+  return Math.round((to - from) / 86400000) + 1;
+}

@@ -6,35 +6,18 @@ import { listPlans, rememberPlan, removePlan } from "./storage.js";
 import { showToast } from "./toast.js";
 import { withMock } from "./util.js";
 import { icons } from "./icons.js";
+import { createScheduleSettingsForm } from "./scheduleform.js";
 
 const form = document.getElementById("create-form");
 const titleInput = document.getElementById("cf-title");
-const startSelect = document.getElementById("cf-start-hour");
-const endSelect = document.getElementById("cf-end-hour");
 const submitBtn = document.getElementById("cf-submit");
 const planList = document.getElementById("plan-list");
 const planListEmpty = document.getElementById("plan-list-empty");
 
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr"];
-const FULL_WEEK = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-/** Stunden-Auswahlfelder füllen (Start 0–23, Ende 1–24). */
-function buildHourOptions() {
-  for (let h = 0; h <= 23; h++) {
-    const option = document.createElement("option");
-    option.value = String(h);
-    option.textContent = String(h).padStart(2, "0") + ":00";
-    if (h === 6) option.selected = true;
-    startSelect.append(option);
-  }
-  for (let h = 1; h <= 24; h++) {
-    const option = document.createElement("option");
-    option.value = String(h);
-    option.textContent = String(h).padStart(2, "0") + ":00";
-    if (h === 20) option.selected = true;
-    endSelect.append(option);
-  }
-}
+// Tage/Datum/Uhrzeiten: gemeinsames Formularmodul (auch im Einstellungen-Dialog der Planseite)
+const settingsForm = createScheduleSettingsForm(document.getElementById("cf-settings"), {
+  idPrefix: "cf",
+});
 
 /** Formular: Plan anlegen und zur Planseite weiterleiten. */
 form.addEventListener("submit", async (event) => {
@@ -44,18 +27,17 @@ form.addEventListener("submit", async (event) => {
     titleInput.reportValidity();
     return;
   }
-  const startHour = parseInt(startSelect.value, 10);
-  const endHour = parseInt(endSelect.value, 10);
-  if (startHour >= endHour) {
-    showToast("Die Startstunde muss vor der Endstunde liegen.");
+  let settings;
+  try {
+    settings = settingsForm.getValues();
+  } catch (err) {
+    showToast(err.message);
     return;
   }
-  const daysChoice = form.querySelector("input[name='days']:checked");
-  const days = daysChoice && daysChoice.value === "fullweek" ? FULL_WEEK : WEEKDAYS;
 
   submitBtn.disabled = true;
   try {
-    const schedule = await api.createSchedule({ title, settings: { startHour, endHour, days } });
+    const schedule = await api.createSchedule({ title, settings });
     rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
     location.href = withMock(
       `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
@@ -107,5 +89,4 @@ function renderPlanList() {
   }
 }
 
-buildHourOptions();
 renderPlanList();

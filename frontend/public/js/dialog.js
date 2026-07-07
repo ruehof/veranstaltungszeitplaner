@@ -1,6 +1,6 @@
 // dialog.js – Termin-Dialog (<dialog>) zum Anlegen und Bearbeiten von Karten
 
-import { minutesToHHMM, CARD_COLORS, DAY_NAMES } from "./util.js";
+import { minutesToHHMM, CARD_COLORS, CARD_BG_COLORS, DAY_NAMES } from "./util.js";
 import { showToast } from "./toast.js";
 
 let config = null; // { getSchedule, uploadImage(file), onSubmit(payload, existingCard) }
@@ -23,6 +23,7 @@ export function initCardDialog(options) {
     imageRemove: document.getElementById("cd-image-remove"),
     imagePreview: document.getElementById("cd-image-preview"),
     colors: document.getElementById("cd-colors"),
+    bgColors: document.getElementById("cd-bgcolors"),
     day: document.getElementById("cd-day"),
     start: document.getElementById("cd-start"),
     duration: document.getElementById("cd-duration"),
@@ -43,26 +44,31 @@ export function initCardDialog(options) {
   form.addEventListener("submit", onSubmit);
 }
 
-/** Farbfelder (Radio-Buttons mit Farbmuster) aufbauen. */
+/** Farbfelder (Radio-Buttons mit Farbmuster) für Farbleiste und Hintergrund aufbauen. */
 function buildColorSwatches() {
-  fields.colors.innerHTML = "";
-  CARD_COLORS.forEach((color, index) => {
+  buildSwatches(fields.colors, "cd-color", CARD_COLORS);
+  buildSwatches(fields.bgColors, "cd-bgcolor", CARD_BG_COLORS);
+}
+
+function buildSwatches(containerEl, name, colors) {
+  containerEl.innerHTML = "";
+  colors.forEach((color, index) => {
     const label = document.createElement("label");
     label.className = "color-swatch";
     label.title = color.label;
 
     const input = document.createElement("input");
     input.type = "radio";
-    input.name = "cd-color";
+    input.name = name;
     input.value = color.value;
     if (index === 0) input.defaultChecked = true;
 
     const chip = document.createElement("span");
     chip.className = "color-chip";
-    chip.style.background = color.value;
+    chip.style.background = color.value || "#ffffff"; // leerer value = Weiß (Standard)
 
     label.append(input, chip);
-    fields.colors.append(label);
+    containerEl.append(label);
   });
 }
 
@@ -173,7 +179,8 @@ export function openCardDialog(card = null, defaults = {}) {
     fields.start.value = String(card.startMinutes);
     rebuildDurationOptions(card.durationMinutes);
     setImage(card.imageUrl || null);
-    selectColor(card.color);
+    selectSwatch(fields.colors, "cd-color", card.color);
+    selectSwatch(fields.bgColors, "cd-bgcolor", card.bgColor || "");
   } else {
     fields.heading.textContent = "Neuer Termin";
     fields.save.textContent = "Anlegen";
@@ -184,7 +191,8 @@ export function openCardDialog(card = null, defaults = {}) {
     fields.start.value = String(defaults.startMinutes ?? startFloor);
     rebuildDurationOptions(defaults.durationMinutes ?? 60);
     setImage(null);
-    selectColor(CARD_COLORS[0].value);
+    selectSwatch(fields.colors, "cd-color", CARD_COLORS[0].value);
+    selectSwatch(fields.bgColors, "cd-bgcolor", "");
   }
 
   dlg.showModal();
@@ -192,8 +200,8 @@ export function openCardDialog(card = null, defaults = {}) {
 }
 
 /** Farb-Radio anhand des Wertes auswählen (unbekannte Farbe ⇒ erste). */
-function selectColor(value) {
-  const inputs = fields.colors.querySelectorAll("input[name='cd-color']");
+function selectSwatch(containerEl, name, value) {
+  const inputs = containerEl.querySelectorAll(`input[name='${name}']`);
   let matched = false;
   inputs.forEach((input) => {
     const hit = input.value === value;
@@ -214,11 +222,13 @@ async function onSubmit(event) {
     return;
   }
   const colorInput = fields.colors.querySelector("input[name='cd-color']:checked");
+  const bgInput = fields.bgColors.querySelector("input[name='cd-bgcolor']:checked");
   const payload = {
     title,
     description: fields.description.value,
     imageUrl: currentImageUrl,
     color: colorInput ? colorInput.value : null,
+    bgColor: bgInput && bgInput.value ? bgInput.value : null,
     day: parseInt(fields.day.value, 10),
     startMinutes: parseInt(fields.start.value, 10),
     durationMinutes: parseInt(fields.duration.value, 10),

@@ -21,6 +21,7 @@ export function createCardElement(card, opts) {
   if (card.muted) el.classList.add("muted");
   el.style.top = (card.startMinutes - startHour * 60) * pxPerMin + "px";
   el.style.height = card.durationMinutes * pxPerMin + "px";
+  if (card.bgColor) el.style.background = card.bgColor;
 
   // Farbige Kopfleiste
   const colorBar = document.createElement("div");

@@ -180,10 +180,18 @@ body[data-mode="readonly"] .card {
   z-index: 4;
 }
 
-/* Farbige Kopfleiste */
+/* Farbige Kopfleiste (bewusst kräftig, damit die Farbe gut erkennbar ist) */
 .card-colorbar {
-  flex: 0 0 6px;
+  flex: 0 0 14px;
   background: var(--accent);
+}
+
+/* Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), wächst die Karte
+   über ihr Zeitfenster hinaus (plan.js setzt die Klasse nach dem Messen).
+   Beim Resizen gilt wieder die Inline-Höhe, damit der Griff sichtbar zieht. */
+.card.grow:not(.resizing) {
+  height: auto !important;
+  z-index: 3;
 }
 
 .card-top {
