@@ -1,0 +1,49 @@
+# Veranstaltungszeitplaner mit Docker Compose: App + MongoDB.
+#
+# Start:            docker compose up -d --build
+# Logs:             docker compose logs -f app
+# Stoppen:          docker compose down          (Daten bleiben in den Volumes erhalten)
+#
+# Variante OHNE MongoDB (JSON-Datei-Store, für kleine Installationen):
+#   1. Den kompletten "mongo:"-Service unten entfernen oder auskommentieren.
+#   2. Beim Service "app" die Zeilen MONGODB_URI und depends_on entfernen
+#      und das auskommentierte data-Volume aktivieren.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Nur auf localhost binden – nach außen soll nginx als Reverse Proxy dienen
+      # (siehe deploy/DEPLOYMENT.md). Für direkten Zugriff "127.0.0.1:" entfernen.
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: "3000"
+      MONGODB_URI: "mongodb://mongo:27017/veranstaltungszeitplaner"
+    volumes:
+      - uploads:/app/backend/uploads
+      # Nur für die Variante ohne MongoDB nötig (JSON-Datei-Store):
+      # - appdata:/app/backend/data
+    depends_on:
+      - mongo
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+
+volumes:
+  uploads:
+  mongodata:
+  # appdata:

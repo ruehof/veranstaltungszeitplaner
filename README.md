@@ -31,7 +31,7 @@ Drag & Drop verschieben.
 | Datenbank | MongoDB (Treiber `mongodb`) – **oder** JSON-Datei-Fallback ohne MongoDB |
 | Frontend | Vanilla HTML/CSS/JS (ES-Module), kein Framework, kein Bundler |
 | Bild-Uploads | `multer`, Ablage unter `backend/uploads/` |
-| Hosting | Debian Linux, systemd-Dienst, optional nginx als Reverse Proxy |
+| Hosting | Debian Linux, systemd-Dienst **oder** Docker Compose, optional nginx als Reverse Proxy |
 
 Der Express-Server liefert das Frontend (`frontend/public/`) statisch mit aus –
 es läuft also alles über einen einzigen Prozess und Port.
@@ -42,6 +42,8 @@ es läuft also alles über einen einzigen Prozess und Port.
 Veranstaltungszeitplaner/
 ├── SPEC.md                  ← Spezifikation (Architektur, API, Konventionen)
 ├── README.md                ← dieses Dokument
+├── Dockerfile               ← Produktions-Image (App + Frontend)
+├── docker-compose.yml       ← App + MongoDB als Container
 ├── backend/
 │   ├── package.json
 │   ├── server.js            ← Einstiegspunkt
@@ -92,6 +94,14 @@ Installationen.
    ```
 
 3. Server neu starten (`npm start`).
+
+### Mit Docker
+
+Alternativ startet `docker compose up -d --build` in der Projektwurzel die App
+zusammen mit einer MongoDB in Containern (erreichbar unter
+http://localhost:3000, Daten in Docker-Volumes). Details – auch zur Variante
+ohne MongoDB – stehen in der [docker-compose.yml](docker-compose.yml) und in
+[deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md), Abschnitt 10.
 
 ## API-Kurzreferenz
 

@@ -300,3 +300,93 @@ auf einen anderen Rechner kopieren.
    systemctl status veranstaltungszeitplaner
    journalctl -u veranstaltungszeitplaner -n 50
    ```
+
+---
+
+## 10. Alternative: Betrieb mit Docker
+
+Statt der Abschnitte 1–5 (Node.js, MongoDB, Systembenutzer, systemd) kann die
+App auch komplett in Containern laufen. In der Projektwurzel liegen dafür
+`Dockerfile`, `.dockerignore` und `docker-compose.yml` (App + MongoDB 7,
+Daten in benannten Volumes). Die Abschnitte 6 (nginx/HTTPS) und 7 (Firewall)
+gelten unverändert – der App-Container lauscht wie der systemd-Dienst nur auf
+`127.0.0.1:3000`.
+
+### Docker auf Debian installieren
+
+Über das offizielle Docker-Repository (liefert Docker Engine inkl.
+Compose-Plugin; das Debian-eigene Paket `docker.io` ist meist deutlich älter):
+
+```bash
+apt update
+apt install -y ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg \
+  -o /etc/apt/keyrings/docker.asc
+
+echo "deb [arch=$(dpkg --print-architecture) \
+signed-by=/etc/apt/keyrings/docker.asc] \
+https://download.docker.com/linux/debian $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
+  > /etc/apt/sources.list.d/docker.list
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+```
+
+### App starten
+
+Projektdateien auf den Server kopieren (wie in Abschnitt 3, z. B. per `rsync`
+oder `git clone`), dann in der Projektwurzel:
+
+```bash
+cd /opt/veranstaltungszeitplaner
+docker compose up -d --build
+docker compose ps            # beide Container sollten "running/healthy" sein
+curl -I http://127.0.0.1:3000/
+```
+
+**Ohne MongoDB** (JSON-Datei-Store): die auskommentierten Hinweise am Anfang
+der `docker-compose.yml` befolgen (mongo-Service entfernen, `MONGODB_URI`
+weglassen, `appdata`-Volume aktivieren).
+
+### Betrieb
+
+```bash
+docker compose logs -f app                  # Logs verfolgen
+docker compose down                         # stoppen (Volumes bleiben erhalten)
+docker compose up -d                        # wieder starten
+```
+
+Automatischer Start nach einem Server-Neustart ist durch
+`restart: unless-stopped` in der Compose-Datei abgedeckt (der Docker-Dienst
+selbst ist nach der Installation per systemd aktiviert).
+
+### Updates einspielen
+
+```bash
+cd /opt/veranstaltungszeitplaner
+git pull                                    # bzw. Dateien per rsync ersetzen
+docker compose up -d --build                # baut das Image neu und ersetzt den Container
+```
+
+### Backups
+
+- **MongoDB:** Dump innerhalb des Containers erzeugen und herauskopieren:
+
+  ```bash
+  docker compose exec mongo mongodump --db veranstaltungszeitplaner \
+    --archive > /var/backups/veranstaltungszeitplaner-$(date +%F).archive
+  ```
+
+  Wiederherstellen: `docker compose exec -T mongo mongorestore --archive < DATEI`.
+
+- **Uploads** (und ggf. `appdata` beim JSON-Store) liegen in benannten
+  Docker-Volumes. Sichern z. B. mit:
+
+  ```bash
+  docker run --rm -v veranstaltungszeitplaner_uploads:/daten -v /var/backups:/backup \
+    alpine tar czf /backup/uploads-$(date +%F).tar.gz -C /daten .
+  ```
+
+  (Volume-Name ggf. mit `docker volume ls` prüfen – er wird aus dem
+  Projektordnernamen abgeleitet.)
