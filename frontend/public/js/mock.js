@@ -1,9 +1,12 @@
 // mock.js – In-Memory-Mock der API für Qualitätssicherung ohne Backend.
-// NUR aktiv bei URL-Parameter ?mock=1, sonst völlig wirkungslos.
+// Aktiv NUR bei URL-Parameter ?mock=1 oder auf GitHub Pages (*.github.io, Demo-Betrieb),
+// sonst völlig wirkungslos.
 // Vertragsformen exakt wie in SPEC.md (Statuscodes, {error}-Objekte, Datenmodell).
 // Zustand wird in sessionStorage gehalten, damit index.html → plan.html funktioniert.
 
-const mockEnabled = new URLSearchParams(location.search).get("mock") === "1";
+const mockEnabled =
+  new URLSearchParams(location.search).get("mock") === "1" ||
+  location.hostname.endsWith(".github.io");
 
 if (mockEnabled) {
   const STORE_KEY = "vzp.mockdb";
@@ -278,6 +281,19 @@ if (mockEnabled) {
   };
 
   console.info("[mock] In-Memory-API aktiv (?mock=1). Demo: plan.html?mock=1&id=demo-plan-01&token=demo-token");
+
+  // Sichtbarer Hinweis, damit in der öffentlichen Demo klar ist, dass nichts
+  // auf einem Server gespeichert wird (Daten leben nur im sessionStorage).
+  document.addEventListener("DOMContentLoaded", () => {
+    const banner = document.createElement("div");
+    banner.textContent =
+      "Demo-Modus: Daten werden nur lokal in diesem Browser-Tab gespeichert.";
+    banner.style.cssText =
+      "position:fixed;bottom:0;left:0;right:0;z-index:9999;" +
+      "background:#f0a020;color:#1d2125;font:600 13px/1.4 system-ui,sans-serif;" +
+      "text-align:center;padding:6px 12px;";
+    document.body.append(banner);
+  });
 }
 
 export {}; // Modul ohne Exporte – reiner Seiteneffekt bei ?mock=1

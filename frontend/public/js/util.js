@@ -27,9 +27,10 @@ export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-/** true, wenn die Seite im Mock-Modus (?mock=1) läuft. */
+/** true, wenn die Seite im Mock-Modus läuft (?mock=1 oder GitHub-Pages-Demo). */
 export function isMockActive() {
-  return new URLSearchParams(location.search).get("mock") === "1";
+  if (new URLSearchParams(location.search).get("mock") === "1") return true;
+  return location.hostname.endsWith(".github.io");
 }
 
 /** Hängt bei aktivem Mock-Modus "mock=1" an eine (relative) URL an. */

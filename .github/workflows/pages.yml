@@ -1,0 +1,34 @@
+# Veröffentlicht das Frontend als statische Demo auf GitHub Pages.
+# Die Demo läuft im Mock-Modus (In-Browser-API, siehe frontend/public/js/mock.js) –
+# es ist also kein Backend nötig; Daten leben nur im Browser des Besuchers.
+name: Demo auf GitHub Pages
+
+on:
+  push:
+    branches: [ui-design]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Nie zwei Deployments gleichzeitig; angefangene nicht abbrechen
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/public
+      - id: deployment
+        uses: actions/deploy-pages@v4
