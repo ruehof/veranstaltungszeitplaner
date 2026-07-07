@@ -57,6 +57,13 @@
   position: relative;
 }
 
+/* Plan-Hintergrundbild: füllt die Rasterfläche, Linien und Karten liegen darüber */
+.grid.has-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 /* Ecke oben links: in beide Richtungen sticky */
 .grid-corner {
   position: sticky;
@@ -266,11 +273,11 @@ body[data-mode="readonly"] .card {
   display: none;
 }
 
+/* Kartenbild: skaliert mit festem Seitenverhältnis auf die Kartenbreite (kein Zuschnitt) */
 .card-image {
   display: block;
   width: 100%;
-  max-height: 120px;
-  object-fit: cover;
+  height: auto;
   border-radius: 4px;
   margin: 2px 0 6px;
 }
@@ -442,6 +449,28 @@ body[data-mode="readonly"] .card {
   max-height: 160px;
   border-radius: 6px;
   border: 1px solid var(--border);
+}
+
+/* ---- Einstellungen-Dialog: Popup-Haken ---- */
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+/* ---- Erläuterungs-Popup (Nur-Lese-Link) ---- */
+
+.info-text {
+  margin: 0 0 12px;
+  white-space: pre-line; /* Zeilenumbrüche aus dem Einstellungs-Textfeld erhalten */
+  line-height: 1.55;
 }
 
 /* ---- Freigabe-Dialog ---- */

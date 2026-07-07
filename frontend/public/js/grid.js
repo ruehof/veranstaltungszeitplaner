@@ -30,6 +30,12 @@ export function renderGrid(container, schedule) {
   grid.className = "grid";
   grid.style.setProperty("--day-count", String(days.length));
 
+  // Optionales Plan-Hintergrundbild (Spaltenlinien liegen darüber, Köpfe/Zeitleiste bleiben deckend)
+  if (schedule.settings.backgroundImage) {
+    grid.classList.add("has-bg");
+    grid.style.backgroundImage = `url("${schedule.settings.backgroundImage}")`;
+  }
+
   // Ecke oben links (sticky in beide Richtungen)
   const corner = document.createElement("div");
   corner.className = "grid-corner";

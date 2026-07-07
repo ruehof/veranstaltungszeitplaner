@@ -107,12 +107,48 @@
           Termine, die außerhalb des neuen Rasters liegen, bleiben gespeichert,
           werden aber ausgeblendet, bis das Raster wieder passt.
         </p>
+
+        <div class="field">
+          <span class="field-label">Hintergrundbild des Plans</span>
+          <div class="upload-row">
+            <input type="file" id="sd-bg-file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            <button type="button" id="sd-bg-pick" class="btn">Bild wählen…</button>
+            <button type="button" id="sd-bg-remove" class="btn btn-ghost" hidden>Bild entfernen</button>
+          </div>
+          <img id="sd-bg-preview" class="image-preview" alt="Vorschau Hintergrundbild" hidden>
+        </div>
+
+        <label class="field checkbox-field">
+          <input type="checkbox" id="sd-popup-enabled">
+          <span>Popup: Erläuterungen anzeigen, wenn der Plan über den Nur-Lese-Link geöffnet wird</span>
+        </label>
+        <label class="field">
+          <span class="field-label">Text des Popups</span>
+          <textarea id="sd-popup-text" rows="4" maxlength="5000"
+                    placeholder="z. B. Hinweise zum Ablauf, Treffpunkte, Ansprechpartner …"></textarea>
+        </label>
       </div>
       <footer class="dialog-actions">
         <button type="button" id="sd-cancel" class="btn">Abbrechen</button>
         <button type="submit" id="sd-save" class="btn btn-primary">Speichern</button>
       </footer>
     </form>
+  </dialog>
+
+  <!-- Popup: Erläuterungen beim Öffnen über den Nur-Lese-Link -->
+  <dialog id="info-dialog" class="dialog">
+    <header class="dialog-head">
+      <h2 id="info-dialog-heading">Hinweise</h2>
+      <button type="button" class="icon-btn" data-close-info title="Schließen" aria-label="Schließen">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="dialog-body">
+      <p id="info-dialog-text" class="info-text"></p>
+    </div>
+    <footer class="dialog-actions">
+      <button type="button" class="btn btn-primary" data-close-info>Verstanden</button>
+    </footer>
   </dialog>
 
   <!-- Dialog: Freigeben (Links kopieren) -->

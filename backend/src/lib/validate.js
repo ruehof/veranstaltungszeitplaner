@@ -6,7 +6,13 @@ export const DEFAULT_SETTINGS = Object.freeze({
   endHour: 20,
   days: Object.freeze(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]),
   startDate: null,
+  popupEnabled: false,
+  popupText: "",
+  backgroundImage: null,
 });
+
+// Obergrenze für den Popup-Erläuterungstext
+export const MAX_POPUP_TEXT = 5000;
 
 // Obergrenze für die Anzahl Tagesspalten (z. B. Datumsbereich von–bis)
 export const MAX_DAYS = 31;
@@ -25,12 +31,7 @@ function isValidIsoDate(value) {
 // Prüft und normalisiert die Plan-Einstellungen; fehlende Felder werden mit Defaults gefüllt.
 export function validateSettings(input) {
   if (input === undefined || input === null) {
-    return {
-      startHour: DEFAULT_SETTINGS.startHour,
-      endHour: DEFAULT_SETTINGS.endHour,
-      days: [...DEFAULT_SETTINGS.days],
-      startDate: DEFAULT_SETTINGS.startDate,
-    };
+    return { ...DEFAULT_SETTINGS, days: [...DEFAULT_SETTINGS.days] };
   }
   if (!isPlainObject(input)) {
     throw new HttpError(400, "settings muss ein Objekt sein.");
@@ -39,6 +40,9 @@ export function validateSettings(input) {
   const endHour = input.endHour ?? DEFAULT_SETTINGS.endHour;
   const days = input.days ?? [...DEFAULT_SETTINGS.days];
   const startDate = input.startDate ?? DEFAULT_SETTINGS.startDate;
+  const popupEnabled = input.popupEnabled ?? DEFAULT_SETTINGS.popupEnabled;
+  const popupText = input.popupText ?? DEFAULT_SETTINGS.popupText;
+  const backgroundImage = input.backgroundImage ?? DEFAULT_SETTINGS.backgroundImage;
 
   if (!Number.isInteger(startHour) || startHour < 0 || startHour > 23) {
     throw new HttpError(400, "settings.startHour muss eine ganze Zahl zwischen 0 und 23 sein.");
@@ -62,7 +66,16 @@ export function validateSettings(input) {
   if (startDate !== null && !isValidIsoDate(startDate)) {
     throw new HttpError(400, "settings.startDate muss null oder ein Datum im Format JJJJ-MM-TT sein.");
   }
-  return { startHour, endHour, days: [...days], startDate };
+  if (typeof popupEnabled !== "boolean") {
+    throw new HttpError(400, "settings.popupEnabled muss true oder false sein.");
+  }
+  if (typeof popupText !== "string" || popupText.length > MAX_POPUP_TEXT) {
+    throw new HttpError(400, `settings.popupText muss ein Text mit höchstens ${MAX_POPUP_TEXT} Zeichen sein.`);
+  }
+  if (backgroundImage !== null && typeof backgroundImage !== "string") {
+    throw new HttpError(400, "settings.backgroundImage muss ein Text (URL) oder null sein.");
+  }
+  return { startHour, endHour, days: [...days], startDate, popupEnabled, popupText, backgroundImage };
 }
 
 // Prüft die 15-Minuten-Raster-Regeln einer Karte gegen die Plan-Einstellungen.

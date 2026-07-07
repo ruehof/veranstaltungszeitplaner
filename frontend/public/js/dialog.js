@@ -44,10 +44,11 @@ export function initCardDialog(options) {
   form.addEventListener("submit", onSubmit);
 }
 
-/** Farbfelder (Radio-Buttons mit Farbmuster) für Farbleiste und Hintergrund aufbauen. */
+/** Farbfelder (Radio-Buttons mit Farbmuster) für Farbleiste und Hintergrund aufbauen.
+ *  Für den Hintergrund stehen die Pastelltöne UND die kräftige Farbleisten-Palette zur Wahl. */
 function buildColorSwatches() {
   buildSwatches(fields.colors, "cd-color", CARD_COLORS);
-  buildSwatches(fields.bgColors, "cd-bgcolor", CARD_BG_COLORS);
+  buildSwatches(fields.bgColors, "cd-bgcolor", [...CARD_BG_COLORS, ...CARD_COLORS]);
 }
 
 function buildSwatches(containerEl, name, colors) {

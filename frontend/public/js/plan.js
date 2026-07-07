@@ -40,6 +40,15 @@ const els = {
   settingsSave: document.getElementById("sd-save"),
   settingsCancel: document.getElementById("sd-cancel"),
   settingsClose: document.getElementById("settings-dialog-close"),
+  bgFile: document.getElementById("sd-bg-file"),
+  bgPick: document.getElementById("sd-bg-pick"),
+  bgRemove: document.getElementById("sd-bg-remove"),
+  bgPreview: document.getElementById("sd-bg-preview"),
+  popupEnabled: document.getElementById("sd-popup-enabled"),
+  popupText: document.getElementById("sd-popup-text"),
+  infoDialog: document.getElementById("info-dialog"),
+  infoHeading: document.getElementById("info-dialog-heading"),
+  infoText: document.getElementById("info-dialog-text"),
   shareBtn: document.getElementById("share-btn"),
   shareDialog: document.getElementById("share-dialog"),
   shareEditRow: document.getElementById("share-edit-row"),
@@ -78,8 +87,16 @@ function renderAll() {
     col.append(el);
     // Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), darf die Karte
     // über ihr Zeitfenster hinauswachsen – so bleibt die Beschreibung lesbar.
-    if (el.scrollHeight > el.clientHeight + 1) el.classList.add("grow");
+    updateGrow(el);
+    // Bilder skalieren auf Kartenbreite und laden verzögert ⇒ nach dem Laden neu messen
+    el.querySelectorAll("img").forEach((img) => {
+      if (!img.complete) img.addEventListener("load", () => updateGrow(el), { once: true });
+    });
   }
+}
+
+function updateGrow(el) {
+  if (el.scrollHeight > el.clientHeight + 1) el.classList.add("grow");
 }
 
 /** Fehlerseite bei ungültigem Link / Ladefehler. */
@@ -226,9 +243,54 @@ function setupDialog() {
 
 function setupSettingsDialog() {
   const settingsForm = createScheduleSettingsForm(els.settingsContainer, { idPrefix: "sd" });
+  let currentBgUrl = null; // aktuell gewähltes Plan-Hintergrundbild im Dialog
+
+  function setBgImage(url) {
+    currentBgUrl = url;
+    els.bgFile.value = "";
+    if (url) {
+      els.bgPreview.src = url;
+      els.bgPreview.hidden = false;
+      els.bgRemove.hidden = false;
+      els.bgPick.textContent = "Anderes Bild wählen…";
+    } else {
+      els.bgPreview.removeAttribute("src");
+      els.bgPreview.hidden = true;
+      els.bgRemove.hidden = true;
+      els.bgPick.textContent = "Bild wählen…";
+    }
+  }
+
+  els.bgPick.addEventListener("click", () => els.bgFile.click());
+  els.bgRemove.addEventListener("click", () => setBgImage(null));
+  els.bgFile.addEventListener("change", async () => {
+    const file = els.bgFile.files && els.bgFile.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Das Bild ist größer als 5 MB.");
+      els.bgFile.value = "";
+      return;
+    }
+    els.bgPick.disabled = true;
+    els.settingsSave.disabled = true;
+    els.bgPick.textContent = "Wird hochgeladen…";
+    try {
+      const result = await api.uploadImage(schedule.id, file);
+      setBgImage(result.url);
+    } catch (err) {
+      showToast(err.message || "Bild-Upload fehlgeschlagen.");
+      setBgImage(currentBgUrl);
+    } finally {
+      els.bgPick.disabled = false;
+      els.settingsSave.disabled = false;
+    }
+  });
 
   els.settingsBtn.addEventListener("click", () => {
     settingsForm.setValues(schedule.settings);
+    setBgImage(schedule.settings.backgroundImage || null);
+    els.popupEnabled.checked = Boolean(schedule.settings.popupEnabled);
+    els.popupText.value = schedule.settings.popupText || "";
     els.settingsDialog.showModal();
   });
   els.settingsCancel.addEventListener("click", () => els.settingsDialog.close());
@@ -238,7 +300,12 @@ function setupSettingsDialog() {
     event.preventDefault();
     let settings;
     try {
-      settings = settingsForm.getValues();
+      settings = {
+        ...settingsForm.getValues(),
+        popupEnabled: els.popupEnabled.checked,
+        popupText: els.popupText.value,
+        backgroundImage: currentBgUrl,
+      };
     } catch (err) {
       showToast(err.message);
       return;
@@ -351,6 +418,20 @@ function setupHeader() {
   });
 }
 
+// ---- Erläuterungs-Popup (Nur-Lese-Link) -----------------------------------------------
+
+/** Popup mit Erläuterungen zeigen, wenn der Plan es vorsieht (nur beim Nur-Lese-Link). */
+function maybeShowInfoPopup() {
+  const { popupEnabled, popupText } = schedule.settings;
+  if (!shareParam || !popupEnabled || !popupText || !popupText.trim()) return;
+  els.infoHeading.textContent = schedule.title;
+  els.infoText.textContent = popupText; // Plaintext, Zeilenumbrüche via CSS pre-line
+  document
+    .querySelectorAll("[data-close-info]")
+    .forEach((btn) => btn.addEventListener("click", () => els.infoDialog.close()));
+  els.infoDialog.showModal();
+}
+
 // ---- Klick auf freie Rasterzelle: Termin mit vorbelegter Zeit anlegen -----------------
 
 function setupCellClick() {
@@ -405,6 +486,7 @@ async function load() {
     }
     setupHeader();
     renderAll();
+    maybeShowInfoPopup();
   } catch (err) {
     showFatal(err.message || "Unbekannter Fehler.");
   }

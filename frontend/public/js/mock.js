@@ -38,7 +38,15 @@ if (mockEnabled) {
           title: "Demo-Wochenplan",
           editToken: "demo-token",
           shareId: "demo-share",
-          settings: { startHour: 8, endHour: 18, days: ["Mo", "Di", "Mi", "Do", "Fr"], startDate: null },
+          settings: {
+            startHour: 8,
+            endHour: 18,
+            days: ["Mo", "Di", "Mi", "Do", "Fr"],
+            startDate: null,
+            popupEnabled: false,
+            popupText: "",
+            backgroundImage: null,
+          },
           createdAt: created,
           updatedAt: created,
         },
@@ -142,7 +150,15 @@ if (mockEnabled) {
       if (!body.title || typeof body.title !== "string")
         return errorResponse(400, "Titel fehlt.");
       const settings = Object.assign(
-        { startHour: 6, endHour: 20, days: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], startDate: null },
+        {
+          startHour: 6,
+          endHour: 20,
+          days: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+          startDate: null,
+          popupEnabled: false,
+          popupText: "",
+          backgroundImage: null,
+        },
         body.settings || {}
       );
       const schedule = {
