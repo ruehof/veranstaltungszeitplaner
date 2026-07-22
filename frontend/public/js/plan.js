@@ -6,6 +6,7 @@ import { renderGrid, getPxPerMinute } from "./grid.js";
 import { createCardElement } from "./card.js";
 import { initDragDrop } from "./dragdrop.js";
 import { initCardDialog, openCardDialog } from "./dialog.js";
+import { initCardViewDialog, openCardView } from "./cardview.js";
 import { createScheduleSettingsForm } from "./scheduleform.js";
 import { openMenu } from "./menu.js";
 import { showToast } from "./toast.js";
@@ -84,6 +85,7 @@ function renderAll() {
       readOnly,
       onToggleCollapse: toggleCollapse,
       onMenu: openCardMenu,
+      onMaximize: openCardView,
     });
     col.append(el);
     // Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), darf die Karte
@@ -543,4 +545,5 @@ initDragDrop(els.gridContainer, {
   onResize: commitResize,
 });
 setupCellClick();
+initCardViewDialog(); // Vollansicht: in beiden Modi verfügbar, unabhängig von readOnly
 load();

@@ -166,6 +166,12 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   (`collapsed` wird gespeichert). Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin),
   wächst die ausgeklappte Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`), damit die
   Beschreibung lesbar bleibt.
+- **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
+  Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
+  Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von
+  der tatsächlichen Kartenhöhe im Raster. In BEIDEN Modi verfügbar (auch Nur-Lese), da gerade
+  sehr kurze Termine sonst kaum lesbaren Inhalt zeigen. Schließen per X, Fußleisten-Button,
+  Klick auf den Hintergrund oder Escape.
 - **Plan-Einstellungen:** Button „Einstellungen“ öffnet einen Dialog (gleiches Formularmodul
   wie die Startseite) zum nachträglichen Ändern von Tagen/Datum/Uhrzeiten per PATCH.
   Zusätzlich dort: Hintergrundbild-Upload für den Plan, Haken „Popup“ und Popup-Textfeld.

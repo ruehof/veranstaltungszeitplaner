@@ -366,6 +366,71 @@ body[data-mode="readonly"] .card {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- Vollansicht einer Terminkarte (Maximieren-Symbol) ---- */
+
+.cardview-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+
+.cardview-dialog .dialog-head {
+  align-items: stretch;
+  gap: 12px;
+  padding: 0 18px 0 0;
+}
+
+.cardview-colorbar {
+  flex: 0 0 10px;
+  align-self: stretch;
+  border-radius: 12px 0 0 0;
+}
+
+.cardview-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 14px 0;
+}
+
+.cardview-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  overflow-wrap: break-word;
+}
+
+.cardview-time {
+  font-size: 13px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardview-dialog .badge {
+  margin-bottom: 12px;
+}
+
+.cardview-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0 0 14px;
+}
+
+.cardview-desc {
+  margin: 0 0 4px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.cardview-desc a {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
 /* ---- Dreipunkt-Menü (Popover) ---- */
 
 .popover-menu {

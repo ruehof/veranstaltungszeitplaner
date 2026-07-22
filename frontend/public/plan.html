@@ -142,6 +142,28 @@
     </form>
   </dialog>
 
+  <!-- Dialog: Vollansicht einer Terminkarte (nur Anzeigen, Maximieren-Symbol) -->
+  <dialog id="card-view-dialog" class="dialog cardview-dialog">
+    <header class="dialog-head">
+      <div class="cardview-colorbar" id="cv-colorbar"></div>
+      <div class="cardview-heading">
+        <h2 id="cv-title"></h2>
+        <span id="cv-time" class="cardview-time"></span>
+      </div>
+      <button type="button" class="icon-btn" data-close-cardview title="Schließen" aria-label="Schließen">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="dialog-body">
+      <span id="cv-mute-badge" class="badge" hidden></span>
+      <img id="cv-image" class="cardview-image" alt="">
+      <p id="cv-desc" class="cardview-desc"></p>
+    </div>
+    <footer class="dialog-actions">
+      <button type="button" class="btn btn-primary" data-close-cardview>Schließen</button>
+    </footer>
+  </dialog>
+
   <!-- Popup: Erläuterungen beim Öffnen über den Nur-Lese-Link -->
   <dialog id="info-dialog" class="dialog">
     <header class="dialog-head">

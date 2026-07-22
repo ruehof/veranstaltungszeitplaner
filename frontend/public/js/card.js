@@ -7,7 +7,7 @@ import { getPxPerMinute } from "./grid.js";
 /**
  * Kartenelement erzeugen und absolut positionieren.
  * @param {object} card  Card-Datensatz gemäß SPEC.md
- * @param {object} opts  { schedule, readOnly, onToggleCollapse(card), onMenu(card, anchor) }
+ * @param {object} opts  { schedule, readOnly, onToggleCollapse(card), onMenu(card, anchor), onMaximize(card) }
  */
 export function createCardElement(card, opts) {
   const { schedule, readOnly } = opts;
@@ -77,6 +77,19 @@ export function createCardElement(card, opts) {
   });
   actions.append(collapseBtn);
 
+  // Maximieren: Vollansicht öffnen (v. a. für kurze Termine, bei denen auf der
+  // Karte selbst kaum Platz für Bild/Beschreibung ist). In beiden Modi verfügbar.
+  const maximizeBtn = document.createElement("button");
+  maximizeBtn.type = "button";
+  maximizeBtn.className = "icon-btn card-maximize-btn";
+  maximizeBtn.title = "Vollansicht öffnen";
+  maximizeBtn.innerHTML = icons.maximize;
+  maximizeBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    opts.onMaximize(card);
+  });
+  actions.append(maximizeBtn);
+
   // Dreipunkt-Menü (nur im Bearbeitungsmodus)
   if (!readOnly) {
     const menuBtn = document.createElement("button");
@@ -129,8 +142,9 @@ export function createCardElement(card, opts) {
 /**
  * Beschreibungstext mit Links rendern – ohne innerHTML (XSS-sicher).
  * Unterstützt "[Text](https://…)" sowie automatisch verlinkte http(s)-URLs.
+ * Exportiert, damit die Karten-Vollansicht (cardview.js) dieselbe Logik nutzt.
  */
-function appendDescription(container, text) {
+export function appendDescription(container, text) {
   const linkRe = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<>"')\]]+)/g;
   let last = 0;
   let match;
