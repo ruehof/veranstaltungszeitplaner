@@ -27,36 +27,22 @@
                  placeholder="z. B. Trainingswoche KW 28" autocomplete="off">
         </label>
 
-        <fieldset class="field">
-          <legend class="field-label">Tage</legend>
-          <div class="radio-row">
-            <label class="radio-option">
-              <input type="radio" name="days" value="workweek" checked>
-              <span>Mo–Fr</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="days" value="fullweek">
-              <span>Mo–So</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <div class="field-row">
-          <label class="field">
-            <span class="field-label">Von</span>
-            <select id="cf-start-hour"></select>
-          </label>
-          <label class="field">
-            <span class="field-label">Bis</span>
-            <select id="cf-end-hour"></select>
-          </label>
-        </div>
+        <!-- Tage (Vorauswahlen + Datum von–bis) und Uhrzeiten – gerendert von scheduleform.js -->
+        <div id="cf-settings"></div>
 
         <button id="cf-submit" type="submit" class="btn btn-primary btn-large">Plan erstellen</button>
       </form>
       <p class="hint">
         Nach dem Erstellen findest du auf der Planseite unter „Freigeben" den Bearbeitungslink
         und einen Nur-Lese-Link zum Teilen.
+      </p>
+
+      <hr class="panel-divider">
+      <input type="file" id="import-file" accept="application/json,.json" hidden>
+      <button id="import-btn" type="button" class="btn">Plan aus JSON-Datei importieren…</button>
+      <p class="hint">
+        Erwartet eine Datei, die zuvor über „Exportieren" auf der Planseite erstellt wurde.
+        Es wird ein neuer Plan mit eigenen Links angelegt.
       </p>
     </section>
 

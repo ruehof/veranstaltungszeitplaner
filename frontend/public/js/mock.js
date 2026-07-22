@@ -38,7 +38,15 @@ if (mockEnabled) {
           title: "Demo-Wochenplan",
           editToken: "demo-token",
           shareId: "demo-share",
-          settings: { startHour: 8, endHour: 18, days: ["Mo", "Di", "Mi", "Do", "Fr"] },
+          settings: {
+            startHour: 8,
+            endHour: 18,
+            days: ["Mo", "Di", "Mi", "Do", "Fr"],
+            startDate: null,
+            popupEnabled: false,
+            popupText: "",
+            backgroundImage: null,
+          },
           createdAt: created,
           updatedAt: created,
         },
@@ -54,6 +62,7 @@ if (mockEnabled) {
           startMinutes: 540,
           durationMinutes: 90,
           color: "#61bd4f",
+          bgColor: "#eaf6e4",
           collapsed: false,
           muted: false,
           createdAt: created,
@@ -69,6 +78,7 @@ if (mockEnabled) {
           startMinutes: 615,
           durationMinutes: 60,
           color: "#0079bf",
+          bgColor: null,
           collapsed: false,
           muted: true,
           createdAt: created,
@@ -140,7 +150,15 @@ if (mockEnabled) {
       if (!body.title || typeof body.title !== "string")
         return errorResponse(400, "Titel fehlt.");
       const settings = Object.assign(
-        { startHour: 6, endHour: 20, days: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"] },
+        {
+          startHour: 6,
+          endHour: 20,
+          days: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+          startDate: null,
+          popupEnabled: false,
+          popupText: "",
+          backgroundImage: null,
+        },
         body.settings || {}
       );
       const schedule = {
@@ -206,6 +224,8 @@ if (mockEnabled) {
         startMinutes: body.startMinutes ?? schedule.settings.startHour * 60,
         durationMinutes: body.durationMinutes ?? 60,
         color: body.color || null,
+        bgColor: body.bgColor || null,
+        textColor: body.textColor || null,
         collapsed: Boolean(body.collapsed),
         muted: Boolean(body.muted),
         createdAt: nowIso(),

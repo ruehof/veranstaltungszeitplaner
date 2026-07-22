@@ -57,6 +57,13 @@
   position: relative;
 }
 
+/* Plan-Hintergrundbild: füllt die Rasterfläche, Linien und Karten liegen darüber */
+.grid.has-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 /* Ecke oben links: in beide Richtungen sticky */
 .grid-corner {
   position: sticky;
@@ -180,10 +187,18 @@ body[data-mode="readonly"] .card {
   z-index: 4;
 }
 
-/* Farbige Kopfleiste */
+/* Farbige Kopfleiste (bewusst kräftig, damit die Farbe gut erkennbar ist) */
 .card-colorbar {
-  flex: 0 0 6px;
+  flex: 0 0 14px;
   background: var(--accent);
+}
+
+/* Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), wächst die Karte
+   über ihr Zeitfenster hinaus (plan.js setzt die Klasse nach dem Messen).
+   Beim Resizen gilt wieder die Inline-Höhe, damit der Griff sichtbar zieht. */
+.card.grow:not(.resizing) {
+  height: auto !important;
+  z-index: 3;
 }
 
 .card-top {
@@ -258,11 +273,11 @@ body[data-mode="readonly"] .card {
   display: none;
 }
 
+/* Kartenbild: skaliert mit festem Seitenverhältnis auf die Kartenbreite (kein Zuschnitt) */
 .card-image {
   display: block;
   width: 100%;
-  max-height: 120px;
-  object-fit: cover;
+  height: auto;
   border-radius: 4px;
   margin: 2px 0 6px;
 }
@@ -274,6 +289,26 @@ body[data-mode="readonly"] .card {
   color: var(--text);
   white-space: pre-line; /* mehrzeilige Plaintext-Beschreibung */
   overflow: hidden;
+}
+
+.card-desc a {
+  color: var(--accent-dark);
+  text-decoration: underline;
+  word-break: break-all; /* lange URLs sprengen die Karte nicht */
+}
+
+/* Eigene Textfarbe (textColor): Titel, Zeit, Beschreibung und Icons erben sie */
+.card.custom-text .card-title,
+.card.custom-text .card-time,
+.card.custom-text .card-desc,
+.card.custom-text .card-desc a,
+.card.custom-text .card-mute-icon {
+  color: inherit;
+}
+
+.card.custom-text .card-actions .icon-btn {
+  color: inherit;
+  opacity: 0.8;
 }
 
 /* Stummgeschaltet: ausgegraut/halbtransparent */
@@ -422,6 +457,17 @@ body[data-mode="readonly"] .card {
   outline-offset: 1px;
 }
 
+/* Textfarben-Vorschau: "A" in der jeweiligen Farbe auf neutralem Grund */
+.color-chip-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #97a5b5;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .upload-row {
   display: flex;
   gap: 8px;
@@ -434,6 +480,28 @@ body[data-mode="readonly"] .card {
   max-height: 160px;
   border-radius: 6px;
   border: 1px solid var(--border);
+}
+
+/* ---- Einstellungen-Dialog: Popup-Haken ---- */
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-field input[type="checkbox"] {
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+/* ---- Erläuterungs-Popup (Nur-Lese-Link) ---- */
+
+.info-text {
+  margin: 0 0 12px;
+  white-space: pre-line; /* Zeilenumbrüche aus dem Einstellungs-Textfeld erhalten */
+  line-height: 1.55;
 }
 
 /* ---- Freigabe-Dialog ---- */

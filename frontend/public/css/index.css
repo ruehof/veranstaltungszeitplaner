@@ -65,6 +65,13 @@
   text-decoration: underline;
 }
 
+/* Trennlinie zwischen Erstellen-Formular und Import */
+.panel-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0 16px;
+}
+
 /* Responsive: unter Tablet-Breite untereinander */
 @media (max-width: 760px) {
   .start-main {

@@ -1,40 +1,25 @@
 // index.js – Startseite: Plan erstellen + Liste "Meine Pläne"
 
 import "./mock.js"; // aktiviert sich nur bei ?mock=1
-import { api } from "./api.js";
+import { api, setEditToken } from "./api.js";
 import { listPlans, rememberPlan, removePlan } from "./storage.js";
 import { showToast } from "./toast.js";
 import { withMock } from "./util.js";
 import { icons } from "./icons.js";
+import { createScheduleSettingsForm } from "./scheduleform.js";
 
 const form = document.getElementById("create-form");
 const titleInput = document.getElementById("cf-title");
-const startSelect = document.getElementById("cf-start-hour");
-const endSelect = document.getElementById("cf-end-hour");
 const submitBtn = document.getElementById("cf-submit");
 const planList = document.getElementById("plan-list");
 const planListEmpty = document.getElementById("plan-list-empty");
+const importBtn = document.getElementById("import-btn");
+const importFile = document.getElementById("import-file");
 
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr"];
-const FULL_WEEK = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
-/** Stunden-Auswahlfelder füllen (Start 0–23, Ende 1–24). */
-function buildHourOptions() {
-  for (let h = 0; h <= 23; h++) {
-    const option = document.createElement("option");
-    option.value = String(h);
-    option.textContent = String(h).padStart(2, "0") + ":00";
-    if (h === 6) option.selected = true;
-    startSelect.append(option);
-  }
-  for (let h = 1; h <= 24; h++) {
-    const option = document.createElement("option");
-    option.value = String(h);
-    option.textContent = String(h).padStart(2, "0") + ":00";
-    if (h === 20) option.selected = true;
-    endSelect.append(option);
-  }
-}
+// Tage/Datum/Uhrzeiten: gemeinsames Formularmodul (auch im Einstellungen-Dialog der Planseite)
+const settingsForm = createScheduleSettingsForm(document.getElementById("cf-settings"), {
+  idPrefix: "cf",
+});
 
 /** Formular: Plan anlegen und zur Planseite weiterleiten. */
 form.addEventListener("submit", async (event) => {
@@ -44,18 +29,17 @@ form.addEventListener("submit", async (event) => {
     titleInput.reportValidity();
     return;
   }
-  const startHour = parseInt(startSelect.value, 10);
-  const endHour = parseInt(endSelect.value, 10);
-  if (startHour >= endHour) {
-    showToast("Die Startstunde muss vor der Endstunde liegen.");
+  let settings;
+  try {
+    settings = settingsForm.getValues();
+  } catch (err) {
+    showToast(err.message);
     return;
   }
-  const daysChoice = form.querySelector("input[name='days']:checked");
-  const days = daysChoice && daysChoice.value === "fullweek" ? FULL_WEEK : WEEKDAYS;
 
   submitBtn.disabled = true;
   try {
-    const schedule = await api.createSchedule({ title, settings: { startHour, endHour, days } });
+    const schedule = await api.createSchedule({ title, settings });
     rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
     location.href = withMock(
       `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
@@ -63,6 +47,68 @@ form.addEventListener("submit", async (event) => {
   } catch (err) {
     showToast(err.message || "Plan konnte nicht erstellt werden.");
     submitBtn.disabled = false;
+  }
+});
+
+// ---- Import aus JSON-Datei ---------------------------------------------------
+
+importBtn.addEventListener("click", () => importFile.click());
+
+importFile.addEventListener("change", async () => {
+  const file = importFile.files && importFile.files[0];
+  if (!file) return;
+  importBtn.disabled = true;
+  try {
+    const data = JSON.parse(await file.text());
+    if (
+      !data ||
+      typeof data.title !== "string" ||
+      typeof data.settings !== "object" ||
+      !Array.isArray(data.cards)
+    ) {
+      throw new Error("Das ist keine gültige Wochenplan-Datei (JSON-Export erwartet).");
+    }
+
+    // Neuen Plan anlegen, dann die Karten einzeln übernehmen
+    const schedule = await api.createSchedule({ title: data.title, settings: data.settings });
+    setEditToken(schedule.editToken);
+
+    let failed = 0;
+    for (const card of data.cards) {
+      try {
+        await api.createCard(schedule.id, {
+          title: typeof card.title === "string" && card.title.trim() ? card.title : "Ohne Titel",
+          description: typeof card.description === "string" ? card.description : "",
+          imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : null,
+          color: typeof card.color === "string" ? card.color : null,
+          bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
+          textColor: typeof card.textColor === "string" ? card.textColor : null,
+          day: card.day,
+          startMinutes: card.startMinutes,
+          durationMinutes: card.durationMinutes,
+          collapsed: Boolean(card.collapsed),
+          muted: Boolean(card.muted),
+        });
+      } catch {
+        failed++; // z. B. Karte passt nicht ins Raster – restliche Karten trotzdem übernehmen
+      }
+    }
+
+    rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
+    const target = withMock(
+      `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
+    );
+    if (failed > 0) {
+      showToast(`${failed} von ${data.cards.length} Terminen konnten nicht übernommen werden.`);
+      setTimeout(() => (location.href = target), 1800);
+    } else {
+      location.href = target;
+    }
+  } catch (err) {
+    showToast(err.message || "Import fehlgeschlagen.");
+  } finally {
+    importBtn.disabled = false;
+    importFile.value = "";
   }
 });
 
@@ -107,5 +153,4 @@ function renderPlanList() {
   }
 }
 
-buildHourOptions();
 renderPlanList();

@@ -16,7 +16,9 @@ services:
     ports:
       # Nur auf localhost binden – nach außen soll nginx als Reverse Proxy dienen
       # (siehe deploy/DEPLOYMENT.md). Für direkten Zugriff "127.0.0.1:" entfernen.
-      - "127.0.0.1:3000:3000"
+      # Host-Port 3002, da 3000/3001 auf dem Server bereits belegt sind
+      # (Container-interner Port bleibt 3000, siehe healthcheck unten).
+      - "127.0.0.1:3002:3000"
     environment:
       PORT: "3000"
       MONGODB_URI: "mongodb://mongo:27017/veranstaltungszeitplaner"

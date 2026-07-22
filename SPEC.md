@@ -58,7 +58,11 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "settings": {
     "startHour": 6,
     "endHour": 20,
-    "days": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+    "days": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+    "startDate": null,
+    "popupEnabled": false,
+    "popupText": "",
+    "backgroundImage": null
   },
   "createdAt": "ISO-8601",
   "updatedAt": "ISO-8601"
@@ -78,6 +82,8 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "startMinutes": 480,
   "durationMinutes": 90,
   "color": "string | null (CSS-Farbe für Kartenleiste)",
+  "bgColor": "string | null (CSS-Hintergrundfarbe des Kartenkörpers, null = Weiß)",
+  "textColor": "string | null (CSS-Textfarbe der Karte, null = Standard dunkel)",
   "collapsed": false,
   "muted": false,
   "createdAt": "ISO-8601",
@@ -86,6 +92,14 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
 ```
 
 Regeln:
+- `settings.days`: 1–31 Tageskürzel, Duplikate erlaubt (z. B. Sa–Sa = 8 Tage von Samstag
+  bis Samstag). `settings.startDate` (`"JJJJ-MM-TT"` oder null): Kalenderdatum des ersten
+  Tages; wenn gesetzt, zeigen die Spaltenköpfe die konkreten Daten.
+- `settings.popupEnabled`/`popupText` (max. 5000 Zeichen): Ist der Haken gesetzt und Text
+  vorhanden, zeigt das Frontend beim Öffnen über den **Nur-Lese-Link** ein Erläuterungs-Popup.
+- `settings.backgroundImage` (Upload-URL oder null): Hintergrundbild des Plans, füllt die
+  Rasterfläche (cover); beim Ersetzen/Entfernen und Plan-Löschen räumt der Server die
+  Upload-Datei auf.
 - `day`: Index in `settings.days` (0 = erster Tag).
 - `startMinutes`: Minuten seit Mitternacht, **Vielfaches von 15**, innerhalb `startHour*60 … endHour*60`.
 - `durationMinutes`: Vielfaches von 15, min. 15. Ende darf `endHour*60` nicht überschreiten.
@@ -118,6 +132,9 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
 ### index.html (Startseite)
 - Formular „Neuen Wochenplan erstellen“ (Titel) ⇒ POST `/api/schedules` ⇒ Weiterleitung auf
   `plan.html?id=<id>&token=<editToken>`.
+- Tages-Vorauswahlen: Mo–Fr, Mo–So, Sa–So, Sa–Sa, So–So (Sa–Sa/So–So = 8-Tage-Wochen) sowie
+  „Datum von–bis“ (max. 31 Tage; setzt `settings.startDate`, Tage werden aus dem Bereich
+  abgeleitet). Gemeinsames Formularmodul `js/scheduleform.js`, auch im Einstellungen-Dialog.
 - Hinweisbox: Bearbeitungslink + Freigabelink werden auf der Planseite angezeigt.
 - Zuletzt erstellte Pläne aus `localStorage` auflisten (id, titel, token lokal merken).
 
@@ -129,8 +146,17 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
 - **Drag & Drop** mit Pointer Events (kein HTML5-DnD): Karte greifen, Geist-Vorschau am
   15-Minuten-Raster einrasten, beim Loslassen PATCH an Server. Auch Tag-Wechsel per Drag.
 - **Größe ändern:** Griff am unteren Kartenrand zieht `durationMinutes` (15-min-Raster).
-- **Karte:** farbige Kopfleiste, Titel, Uhrzeit (z.B. „08:00–09:30“), Bild (falls vorhanden),
-  Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung ein/aus (`collapsed` wird gespeichert).
+- **Karte:** farbige Kopfleiste (`color`), optional eingefärbter Kartenkörper (`bgColor`,
+  Palette: Pastelltöne + kräftige Farbleisten-Farben), Titel, Uhrzeit (z.B. „08:00–09:30“),
+  Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf Kartenbreite, kein
+  Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung ein/aus
+  (`collapsed` wird gespeichert). Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin),
+  wächst die ausgeklappte Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`), damit die
+  Beschreibung lesbar bleibt.
+- **Plan-Einstellungen:** Button „Einstellungen“ öffnet einen Dialog (gleiches Formularmodul
+  wie die Startseite) zum nachträglichen Ändern von Tagen/Datum/Uhrzeiten per PATCH.
+  Zusätzlich dort: Hintergrundbild-Upload für den Plan, Haken „Popup“ und Popup-Textfeld.
+  Termine außerhalb des neuen Rasters bleiben gespeichert, werden aber ausgeblendet.
 - **Dreipunkt-Menü** oben rechts auf der Karte: „Duplizieren“, „Stummschalten“/„Aktivieren“, „Löschen“
   (Löschen mit Bestätigung). Menü schließt bei Klick außerhalb.
 - **Karte anlegen:** Button „+ Termin“ sowie Klick auf freie Rasterzelle ⇒ Dialog (Titel,
@@ -138,7 +164,20 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   (Doppelklick auf Karte oder Menüpunkt „Bearbeiten“).
 - **Freigeben:** Button „Freigeben“ zeigt beide Links (Bearbeiten mit Token, Nur-Lesen mit shareId)
   mit „Kopieren“-Buttons.
-- Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und Ein-/Ausklappen (lokal).
+- Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und
+  Ein-/Ausklappen (lokal). Der Logo-Link zur Startseite ist deaktiviert, damit es keinen
+  Weg zur Plan-Erstellung gibt; „Exportieren“ bleibt verfügbar.
+- **Beschreibung mit Links:** `https://…`-Adressen werden automatisch verlinkt, eigener
+  Linktext per `[Text](https://…)`. Rendering ohne innerHTML (XSS-sicher), nur http(s),
+  Links öffnen in neuem Tab (`rel="noopener noreferrer"`).
+- **Textfarbe:** Palette `CARD_TEXT_COLORS` (Standard dunkel, Weiß, Hellgelb, Grau sowie
+  dunkle Töne); bei gesetzter `textColor` erben Titel, Zeit, Beschreibung und Icons die Farbe.
+- **Export/Import:** „Exportieren“ (Planseite, beide Modi) lädt den Plan als JSON-Datei
+  herunter: `{format: "veranstaltungszeitplaner", version: 1, title, settings, cards[]}`
+  (Karten ohne `id`/`scheduleId`). „Plan aus JSON-Datei importieren…“ (Startseite) legt
+  daraus einen NEUEN Plan mit eigenen Links an; Karten, die nicht ins Raster passen,
+  werden gezählt übersprungen. Bild-URLs werden unverändert übernommen (funktionieren
+  nur, solange die Uploads auf demselben Server existieren).
 - Sprache der Oberfläche: **Deutsch**. Design: hell, freundlich, Trello-artige Karten mit
   abgerundeten Ecken und dezentem Schatten; Akzentfarbe Blau (#0079bf-Familie).
 

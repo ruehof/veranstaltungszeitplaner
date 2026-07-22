@@ -3,7 +3,7 @@ import { HttpError } from "../lib/httpError.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { randomId } from "../lib/ids.js";
 import { validateSettings } from "../lib/validate.js";
-import { deleteUploadFile } from "../lib/uploadFiles.js";
+import { deleteUploadFile, deleteUploadIfUnreferenced } from "../lib/uploadFiles.js";
 import { requireEditToken } from "./auth.js";
 
 // Routen für Wochenpläne (Schedules) inkl. Nur-Lese-Freigabe (/share/:shareId).
@@ -75,7 +75,13 @@ export function createScheduleRoutes({ storage, uploadDir }) {
         updates.settings = validateSettings(body.settings);
       }
       updates.updatedAt = new Date().toISOString();
+      const previousBg = req.schedule.settings.backgroundImage;
       const schedule = await storage.updateSchedule(req.schedule.id, updates);
+      // Wurde das Plan-Hintergrundbild ersetzt oder entfernt, verwaiste Upload-Datei aufräumen
+      if (updates.settings && previousBg && previousBg !== updates.settings.backgroundImage) {
+        const cards = await storage.getCards(req.schedule.id);
+        await deleteUploadIfUnreferenced(uploadDir, previousBg, cards);
+      }
       res.json(schedule);
     })
   );
@@ -87,6 +93,9 @@ export function createScheduleRoutes({ storage, uploadDir }) {
     asyncHandler(async (req, res) => {
       const cards = await storage.getCards(req.schedule.id);
       const imageUrls = new Set(cards.map((c) => c.imageUrl).filter(Boolean));
+      if (req.schedule.settings.backgroundImage) {
+        imageUrls.add(req.schedule.settings.backgroundImage);
+      }
       for (const imageUrl of imageUrls) {
         await deleteUploadFile(uploadDir, imageUrl);
       }

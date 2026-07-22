@@ -1,6 +1,6 @@
 // grid.js – Aufbau des Wochenrasters (Tagesspalten, Zeitleiste, Stundenlinien)
 
-import { minutesToHHMM, DAY_NAMES } from "./util.js";
+import { minutesToHHMM, DAY_NAMES, parseISODate, addDays, formatDateDE } from "./util.js";
 
 /** Stundenhöhe in Pixel aus der CSS-Variable --hour-height lesen. */
 export function getHourHeight() {
@@ -30,13 +30,20 @@ export function renderGrid(container, schedule) {
   grid.className = "grid";
   grid.style.setProperty("--day-count", String(days.length));
 
+  // Optionales Plan-Hintergrundbild (Spaltenlinien liegen darüber, Köpfe/Zeitleiste bleiben deckend)
+  if (schedule.settings.backgroundImage) {
+    grid.classList.add("has-bg");
+    grid.style.backgroundImage = `url("${schedule.settings.backgroundImage}")`;
+  }
+
   // Ecke oben links (sticky in beide Richtungen)
   const corner = document.createElement("div");
   corner.className = "grid-corner";
   grid.append(corner);
 
-  // Tagesköpfe (sticky oben)
-  for (const dayKey of days) {
+  // Tagesköpfe (sticky oben); bei gesetztem Startdatum zeigt die zweite Zeile das Datum
+  const baseDate = schedule.settings.startDate ? parseISODate(schedule.settings.startDate) : null;
+  days.forEach((dayKey, index) => {
     const head = document.createElement("div");
     head.className = "day-head";
     const shortSpan = document.createElement("span");
@@ -44,10 +51,12 @@ export function renderGrid(container, schedule) {
     shortSpan.textContent = dayKey;
     const longSpan = document.createElement("span");
     longSpan.className = "day-head-long";
-    longSpan.textContent = DAY_NAMES[dayKey] || dayKey;
+    longSpan.textContent = baseDate
+      ? formatDateDE(addDays(baseDate, index))
+      : DAY_NAMES[dayKey] || dayKey;
     head.append(shortSpan, longSpan);
     grid.append(head);
-  }
+  });
 
   // Zeitleiste links (sticky links)
   const timeCol = document.createElement("div");

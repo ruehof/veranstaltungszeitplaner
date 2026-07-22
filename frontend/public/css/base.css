@@ -68,6 +68,11 @@ body {
   white-space: nowrap;
 }
 
+/* Im Nur-Lese-Modus wird das href entfernt – dann kein Link-Verhalten zeigen */
+a.app-logo:not([href]) {
+  cursor: default;
+}
+
 /* ---- Buttons ---- */
 
 .btn {
@@ -215,6 +220,7 @@ body {
 }
 
 input[type="text"],
+input[type="date"],
 textarea,
 select {
   font: inherit;
@@ -227,6 +233,7 @@ select {
 }
 
 input[type="text"]:focus,
+input[type="date"]:focus,
 textarea:focus,
 select:focus {
   outline: 2px solid var(--accent);
@@ -241,7 +248,13 @@ textarea {
 
 .radio-row {
   display: flex;
-  gap: 16px;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+}
+
+/* Datumsbereich (Formularmodul scheduleform.js) */
+.date-range-row {
+  margin-top: 10px;
 }
 
 .radio-option {
