@@ -137,10 +137,10 @@ cp .env.example .env
 nano .env
 ```
 
-Inhalt (Beispiel mit MongoDB):
+Inhalt (Beispiel mit MongoDB; Port 3002, da 3000/3001 auf dem Server bereits belegt sind):
 
 ```
-PORT=3000
+PORT=3002
 MONGODB_URI=mongodb://127.0.0.1:27017/veranstaltungszeitplaner
 ```
 
@@ -172,7 +172,7 @@ systemctl status veranstaltungszeitplaner
 Test: Die App sollte jetzt lokal antworten:
 
 ```bash
-curl -I http://127.0.0.1:3000/
+curl -I http://127.0.0.1:3002/
 ```
 
 ### Logs ansehen
@@ -229,7 +229,7 @@ certbot renew --dry-run
 
 ## 7. Firewall (ufw)
 
-Falls `ufw` verwendet wird, nur SSH und HTTP/HTTPS öffnen – **nicht** Port 3000
+Falls `ufw` verwendet wird, nur SSH und HTTP/HTTPS öffnen – **nicht** Port 3002
 (die App soll nur über nginx erreichbar sein, sie lauscht ohnehin idealerweise
 nur auf 127.0.0.1):
 
@@ -310,7 +310,9 @@ App auch komplett in Containern laufen. In der Projektwurzel liegen dafür
 `Dockerfile`, `.dockerignore` und `docker-compose.yml` (App + MongoDB 7,
 Daten in benannten Volumes). Die Abschnitte 6 (nginx/HTTPS) und 7 (Firewall)
 gelten unverändert – der App-Container lauscht wie der systemd-Dienst nur auf
-`127.0.0.1:3000`.
+`127.0.0.1:3002` (Host-Port; intern im Container läuft die App weiterhin auf
+Port 3000 – das ist bereits in der mitgelieferten `docker-compose.yml` so
+eingestellt, da 3000/3001 auf diesem Server schon von anderen Diensten belegt sind).
 
 ### Docker auf Debian installieren
 
@@ -342,7 +344,7 @@ oder `git clone`), dann in der Projektwurzel:
 cd /opt/veranstaltungszeitplaner
 docker compose up -d --build
 docker compose ps            # beide Container sollten "running/healthy" sein
-curl -I http://127.0.0.1:3000/
+curl -I http://127.0.0.1:3002/
 ```
 
 **Ohne MongoDB** (JSON-Datei-Store): die auskommentierten Hinweise am Anfang
