@@ -35,6 +35,9 @@ export function openCardView(card) {
 
   title.textContent = card.title;
   time.textContent = formatRange(card.startMinutes, card.durationMinutes);
+  // .cardview-time hat per CSS eine feste graue Farbe (für den Normalfall) – bei
+  // gewählter Textfarbe hier überschreiben, sonst schlecht lesbar auf dunklem Grund.
+  time.style.color = card.textColor || "";
   muteBadge.hidden = !card.muted;
   muteBadge.innerHTML = icons.mute + " Stummgeschaltet";
 

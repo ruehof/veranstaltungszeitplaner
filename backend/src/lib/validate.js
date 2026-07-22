@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   days: Object.freeze(["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]),
   startDate: null,
   popupEnabled: false,
+  popupEnabledEdit: false,
   popupText: "",
   backgroundImage: null,
 });
@@ -41,6 +42,7 @@ export function validateSettings(input) {
   const days = input.days ?? [...DEFAULT_SETTINGS.days];
   const startDate = input.startDate ?? DEFAULT_SETTINGS.startDate;
   const popupEnabled = input.popupEnabled ?? DEFAULT_SETTINGS.popupEnabled;
+  const popupEnabledEdit = input.popupEnabledEdit ?? DEFAULT_SETTINGS.popupEnabledEdit;
   const popupText = input.popupText ?? DEFAULT_SETTINGS.popupText;
   const backgroundImage = input.backgroundImage ?? DEFAULT_SETTINGS.backgroundImage;
 
@@ -69,13 +71,25 @@ export function validateSettings(input) {
   if (typeof popupEnabled !== "boolean") {
     throw new HttpError(400, "settings.popupEnabled muss true oder false sein.");
   }
+  if (typeof popupEnabledEdit !== "boolean") {
+    throw new HttpError(400, "settings.popupEnabledEdit muss true oder false sein.");
+  }
   if (typeof popupText !== "string" || popupText.length > MAX_POPUP_TEXT) {
     throw new HttpError(400, `settings.popupText muss ein Text mit höchstens ${MAX_POPUP_TEXT} Zeichen sein.`);
   }
   if (backgroundImage !== null && typeof backgroundImage !== "string") {
     throw new HttpError(400, "settings.backgroundImage muss ein Text (URL) oder null sein.");
   }
-  return { startHour, endHour, days: [...days], startDate, popupEnabled, popupText, backgroundImage };
+  return {
+    startHour,
+    endHour,
+    days: [...days],
+    startDate,
+    popupEnabled,
+    popupEnabledEdit,
+    popupText,
+    backgroundImage,
+  };
 }
 
 // Prüft die 15-Minuten-Raster-Regeln einer Karte gegen die Plan-Einstellungen.

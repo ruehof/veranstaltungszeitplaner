@@ -65,6 +65,7 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
     "days": ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
     "startDate": null,
     "popupEnabled": false,
+    "popupEnabledEdit": false,
     "popupText": "",
     "backgroundImage": null
   },
@@ -99,8 +100,10 @@ Regeln:
 - `settings.days`: 1–31 Tageskürzel, Duplikate erlaubt (z. B. Sa–Sa = 8 Tage von Samstag
   bis Samstag). `settings.startDate` (`"JJJJ-MM-TT"` oder null): Kalenderdatum des ersten
   Tages; wenn gesetzt, zeigen die Spaltenköpfe die konkreten Daten.
-- `settings.popupEnabled`/`popupText` (max. 5000 Zeichen): Ist der Haken gesetzt und Text
-  vorhanden, zeigt das Frontend beim Öffnen über den **Nur-Lese-Link** ein Erläuterungs-Popup.
+- `settings.popupEnabled`/`popupEnabledEdit`/`popupText` (max. 5000 Zeichen): Ist der jeweilige
+  Haken gesetzt und Text vorhanden, zeigt das Frontend beim Öffnen über den **Nur-Lese-Link**
+  (`popupEnabled`) bzw. den **Bearbeitungslink** (`popupEnabledEdit`) ein Erläuterungs-Popup
+  mit demselben Text. Beide Haken sind unabhängig voneinander schaltbar.
 - `settings.backgroundImage` (Upload-URL oder null): Hintergrundbild des Plans, füllt die
   Rasterfläche (cover); beim Ersetzen/Entfernen und Plan-Löschen räumt der Server die
   Upload-Datei auf.
@@ -174,7 +177,8 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   Klick auf den Hintergrund oder Escape.
 - **Plan-Einstellungen:** Button „Einstellungen“ öffnet einen Dialog (gleiches Formularmodul
   wie die Startseite) zum nachträglichen Ändern von Tagen/Datum/Uhrzeiten per PATCH.
-  Zusätzlich dort: Hintergrundbild-Upload für den Plan, Haken „Popup“ und Popup-Textfeld.
+  Zusätzlich dort: Hintergrundbild-Upload für den Plan, je ein Haken „Popup“ für
+  Nur-Lese-Link und Bearbeitungslink sowie ein gemeinsames Popup-Textfeld.
   Termine außerhalb des neuen Rasters bleiben gespeichert, werden aber ausgeblendet.
 - **Dreipunkt-Menü** oben rechts auf der Karte: „Duplizieren“, „Stummschalten“/„Aktivieren“, „Löschen“
   (Löschen mit Bestätigung). Menü schließt bei Klick außerhalb.

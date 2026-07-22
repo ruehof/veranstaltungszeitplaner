@@ -47,6 +47,7 @@ const els = {
   bgRemove: document.getElementById("sd-bg-remove"),
   bgPreview: document.getElementById("sd-bg-preview"),
   popupEnabled: document.getElementById("sd-popup-enabled"),
+  popupEnabledEdit: document.getElementById("sd-popup-enabled-edit"),
   popupText: document.getElementById("sd-popup-text"),
   infoDialog: document.getElementById("info-dialog"),
   infoHeading: document.getElementById("info-dialog-heading"),
@@ -293,6 +294,7 @@ function setupSettingsDialog() {
     settingsForm.setValues(schedule.settings);
     setBgImage(schedule.settings.backgroundImage || null);
     els.popupEnabled.checked = Boolean(schedule.settings.popupEnabled);
+    els.popupEnabledEdit.checked = Boolean(schedule.settings.popupEnabledEdit);
     els.popupText.value = schedule.settings.popupText || "";
     els.settingsDialog.showModal();
   });
@@ -306,6 +308,7 @@ function setupSettingsDialog() {
       settings = {
         ...settingsForm.getValues(),
         popupEnabled: els.popupEnabled.checked,
+        popupEnabledEdit: els.popupEnabledEdit.checked,
         popupText: els.popupText.value,
         backgroundImage: currentBgUrl,
       };
@@ -462,12 +465,13 @@ function exportPlan() {
   showToast("Plan als JSON-Datei exportiert.", "success");
 }
 
-// ---- Erläuterungs-Popup (Nur-Lese-Link) -----------------------------------------------
+// ---- Erläuterungs-Popup (Nur-Lese- oder Bearbeitungslink) -----------------------------
 
-/** Popup mit Erläuterungen zeigen, wenn der Plan es vorsieht (nur beim Nur-Lese-Link). */
+/** Popup mit Erläuterungen zeigen, wenn der Plan es für den jeweils verwendeten Link vorsieht. */
 function maybeShowInfoPopup() {
-  const { popupEnabled, popupText } = schedule.settings;
-  if (!shareParam || !popupEnabled || !popupText || !popupText.trim()) return;
+  const { popupEnabled, popupEnabledEdit, popupText } = schedule.settings;
+  const enabledForThisLink = shareParam ? popupEnabled : popupEnabledEdit;
+  if (!enabledForThisLink || !popupText || !popupText.trim()) return;
   els.infoHeading.textContent = schedule.title;
   els.infoText.textContent = popupText; // Plaintext, Zeilenumbrüche via CSS pre-line
   document
