@@ -195,19 +195,29 @@ hängt davon ab, ob auf dem Server bereits einer läuft:
   nötig, die anderen Seiten bleiben unberührt.
 - **Kein Webserver installiert** → Abschnitt 6b (nginx).
 
-Beide Varianten setzen nur DNS voraus: Die gewünschte (Sub-)Domain
-(z. B. `plan.example.de`) muss per A/AAAA-Record auf den Server zeigen.
+Innerhalb von Abschnitt 6a gibt es zwei Unterfälle, je nachdem ob die App eine
+eigene (Sub-)Domain bekommt oder unter einem Pfad einer bestehenden Domain
+laufen soll:
+
+- **6a-i:** eigene (Sub-)Domain, z. B. `plan.example.de` → neuer VirtualHost.
+- **6a-ii:** Pfad unter einer bestehenden Domain, z. B.
+  `sportinstitut.uni-wuppertal.de/wochenplaner/` → Zeilen werden in den
+  BESTEHENDEN VirtualHost der Domain eingefügt, kein neuer VirtualHost.
+
+Voraussetzung für 6a-i/6b: Die gewünschte Subdomain zeigt per A/AAAA-Record
+auf den Server. Für 6a-ii genügt es, dass die bestehende Domain bereits läuft
+(DNS ist dort ja schon eingerichtet).
 
 ### 6a. Mit vorhandenem Apache (empfohlen bei bestehendem Apache-Server)
 
-Benötigte Module aktivieren:
+Benötigte Module aktivieren (für beide Unterfälle gleich):
 
 ```bash
 a2enmod proxy proxy_http headers
 systemctl restart apache2
 ```
 
-Beispielkonfiguration übernehmen und anpassen (Domain eintragen!):
+#### 6a-i. Eigene (Sub-)Domain (neuer VirtualHost)
 
 ```bash
 cp /opt/veranstaltungszeitplaner/deploy/apache-example.conf \
@@ -241,6 +251,36 @@ Erneuerung testen:
 ```bash
 certbot renew --dry-run
 ```
+
+#### 6a-ii. Pfad unter bestehender Domain (z. B. `sportinstitut.uni-wuppertal.de/wochenplaner/`)
+
+Kein neuer VirtualHost – stattdessen wird ein kleines Snippet
+(`deploy/apache-path-example.conf`) in die **bestehende** VirtualHost-
+Konfiguration der Domain eingefügt. Wo diese liegt, hängt davon ab, wer die
+Domain verwaltet (z. B. `/etc/apache2/sites-available/sportinstitut.conf`
+oder ein von der zentralen Uni-IT verwalteter Pfad):
+
+```bash
+cat /opt/veranstaltungszeitplaner/deploy/apache-path-example.conf
+# -> Inhalt zwischen den Kommentaren "Anfang"/"Ende" in den bestehenden
+#    VirtualHost-Block der Domain einfügen (sowohl in *:80 als auch *:443,
+#    sofern beide etwas ausliefern statt nur auf HTTPS umzuleiten)
+
+apache2ctl configtest && systemctl reload apache2
+curl -I https://sportinstitut.uni-wuppertal.de/wochenplaner/
+```
+
+Läuft die Domain schon über HTTPS (bei einer zentralen Institutsseite der
+Regelfall), ist meist kein zusätzlicher certbot-Lauf nötig – das vorhandene
+Zertifikat deckt automatisch alle Pfade der Domain mit ab, also auch
+`/wochenplaner/`.
+
+**Wichtig:** Da die App unter dieser Variante einen Pfad-Namensraum
+(`/wochenplaner/`) auf einer geteilten Institutsdomain belegt, lohnt sich ein
+kurzer Blick in die bestehende Konfiguration, ob dieser Pfad nicht bereits
+anderweitig verwendet wird (`apache2ctl -S`, bzw. Rücksprache mit der
+Uni-IT/dem Webmaster der Seite, falls Sie diese Konfiguration nicht selbst
+verwalten).
 
 ### 6b. Mit nginx (falls kein anderer Webserver installiert ist)
 

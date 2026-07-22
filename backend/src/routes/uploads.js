@@ -41,7 +41,9 @@ export function createUploadRoutes({ storage, uploadDir }) {
     if (!req.file) {
       throw new HttpError(400, 'Es wurde keine Datei im Feld "image" übermittelt.');
     }
-    res.status(201).json({ url: `/uploads/${req.file.filename}` });
+    // Ohne führenden Schrägstrich: bleibt so im Browser relativ auflösbar,
+    // egal ob die App am Domain-Root oder unter einem Pfad-Präfix läuft.
+    res.status(201).json({ url: `uploads/${req.file.filename}` });
   });
 
   return router;

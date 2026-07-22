@@ -58,10 +58,11 @@ Veranstaltungszeitplaner/
 │       ├── css/
 │       └── js/
 └── deploy/
-    ├── DEPLOYMENT.md        ← Schritt-für-Schritt-Anleitung für Debian
+    ├── DEPLOYMENT.md            ← Schritt-für-Schritt-Anleitung für Debian
     ├── veranstaltungszeitplaner.service
-    ├── apache-example.conf  ← Reverse Proxy, falls bereits Apache läuft
-    └── nginx-example.conf   ← Reverse Proxy, falls kein anderer Webserver läuft
+    ├── apache-example.conf      ← Reverse Proxy: eigene (Sub-)Domain, neuer VirtualHost
+    ├── apache-path-example.conf ← Reverse Proxy: Pfad unter bestehender Domain
+    └── nginx-example.conf       ← Reverse Proxy, falls kein anderer Webserver läuft
 ```
 
 ## Quickstart (lokal)

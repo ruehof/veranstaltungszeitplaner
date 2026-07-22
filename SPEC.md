@@ -15,7 +15,8 @@ haben ein Dreipunkt-Menü (Löschen, Stummschalten, Duplizieren). Optik angelehn
   Wird vom Express-Server statisch ausgeliefert (`frontend/public/`).
 - **Hosting-Ziel:** Debian Linux, systemd-Dienst oder Docker Compose, Apache oder nginx
   als Reverse Proxy (Apache-Variante für Server, auf denen bereits Apache läuft).
-- **Bild-Uploads:** `multer`, Ablage unter `backend/uploads/`, ausgeliefert unter `/uploads/<datei>`.
+- **Bild-Uploads:** `multer`, Ablage unter `backend/uploads/`, ausgeliefert unter `/uploads/<datei>`
+  (vom Frontend relativ referenziert: `uploads/<datei>`, siehe API-Vertrag unten).
 
 ## Ordnerstruktur
 
@@ -37,11 +38,12 @@ Veranstaltungszeitplaner/
 │       ├── plan.html        ← Wochenplan-Ansicht (Grid + Karten)
 │       ├── css/
 │       └── js/
-└── deploy/                  ← Deployment-Agent
-    ├── DEPLOYMENT.md        ← Schritt-für-Schritt-Anleitung Debian
+└── deploy/                      ← Deployment-Agent
+    ├── DEPLOYMENT.md            ← Schritt-für-Schritt-Anleitung Debian
     ├── veranstaltungszeitplaner.service
-    ├── apache-example.conf  ← Reverse Proxy, falls bereits Apache läuft
-    └── nginx-example.conf   ← Reverse Proxy, falls kein anderer Webserver läuft
+    ├── apache-example.conf      ← Reverse Proxy: eigene (Sub-)Domain, neuer VirtualHost
+    ├── apache-path-example.conf ← Reverse Proxy: Pfad unter bestehender Domain
+    └── nginx-example.conf       ← Reverse Proxy, falls kein anderer Webserver läuft
 ```
 
 Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad relativ zu
@@ -79,7 +81,7 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "scheduleId": "string",
   "title": "string",
   "description": "string (mehrzeilig, Plaintext)",
-  "imageUrl": "string | null  (z.B. /uploads/abc123.jpg)",
+  "imageUrl": "string | null  (relativ, z.B. uploads/abc123.jpg)",
   "day": 0,
   "startMinutes": 480,
   "durationMinutes": 90,
@@ -108,10 +110,19 @@ Regeln:
 - Server validiert diese Regeln und rundet nicht selbst – ungültige Werte ⇒ HTTP 400.
 - `muted: true` ⇒ Karte wird im Frontend ausgegraut/halbtransparent dargestellt.
 
-## API-Vertrag (alle Routen unter `/api`)
+## API-Vertrag (alle Routen unter `/api`, aus Sicht des Express-Servers)
 
 Autorisierung zum Bearbeiten: Header `X-Edit-Token: <editToken>`.
 Fehlt/falsch ⇒ 403 `{ "error": "..." }`. Alle Bodies/Antworten JSON.
+
+Das Frontend ruft diese Routen (und `/uploads/<datei>`) OHNE führenden
+Schrägstrich auf (`api/schedules`, nicht `/api/schedules`) und speichert vom
+Server zurückgegebene `imageUrl`-Werte ebenso relativ (`uploads/abc123.jpg`).
+So funktioniert die App unverändert unter einem Pfad-Präfix hinter einem
+Reverse Proxy (z. B. `sportinstitut.uni-wuppertal.de/wochenplaner/`), solange
+der Proxy dieses Präfix vor der Weiterleitung an den Node-Server abschneidet
+(siehe `deploy/DEPLOYMENT.md`, Abschnitt 6a-ii) – die Express-Routen selbst
+bleiben unverändert bei `/api/...` und `/uploads/...`.
 
 | Methode | Pfad | Auth | Beschreibung |
 |---|---|---|---|

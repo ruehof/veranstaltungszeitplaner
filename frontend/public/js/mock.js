@@ -127,7 +127,11 @@ if (mockEnabled) {
   const realFetch = window.fetch.bind(window);
 
   window.fetch = async function mockFetch(input, init = {}) {
-    const url = typeof input === "string" ? input : input.url;
+    let url = typeof input === "string" ? input : input.url;
+    // api.js ruft relativ auf ("api/…", ohne führenden Schrägstrich), damit die
+    // App auch unter einem Pfad-Präfix funktioniert. Für die Regex-Routen unten
+    // (alle mit führendem "/api/") hier auf eine einheitliche Form normalisieren.
+    if (!/^https?:\/\//.test(url) && !url.startsWith("/")) url = "/" + url;
     if (!url.startsWith("/api/")) return realFetch(input, init);
 
     await delay(60); // kleine, realistische Latenz
