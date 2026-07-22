@@ -2,8 +2,8 @@
 
 Diese Anleitung beschreibt Schritt für Schritt, wie der Veranstaltungszeitplaner
 auf einem Debian-Server (Debian 12 „Bookworm" oder Debian 13 „Trixie") produktiv
-betrieben wird: Node.js, MongoDB (optional), systemd-Dienst, nginx als Reverse
-Proxy mit HTTPS.
+betrieben wird: Node.js, MongoDB (optional), systemd-Dienst, Reverse Proxy
+(Apache oder nginx) mit HTTPS.
 
 Alle Befehle werden als `root` ausgeführt (oder mit vorangestelltem `sudo`).
 
@@ -184,7 +184,65 @@ journalctl -u veranstaltungszeitplaner --since today
 
 ---
 
-## 6. nginx als Reverse Proxy mit HTTPS
+## 6. Reverse Proxy mit HTTPS
+
+Die App lauscht nur lokal (`127.0.0.1:3002`) und muss über einen Reverse Proxy
+auf Port 80/443 erreichbar gemacht werden. Welcher Webserver das übernimmt,
+hängt davon ab, ob auf dem Server bereits einer läuft:
+
+- **Läuft bereits Apache auf Port 80/443** (z. B. weil dort schon andere
+  Webseiten gehostet werden) → Abschnitt 6a. Kein zusätzlicher Webserver
+  nötig, die anderen Seiten bleiben unberührt.
+- **Kein Webserver installiert** → Abschnitt 6b (nginx).
+
+Beide Varianten setzen nur DNS voraus: Die gewünschte (Sub-)Domain
+(z. B. `plan.example.de`) muss per A/AAAA-Record auf den Server zeigen.
+
+### 6a. Mit vorhandenem Apache (empfohlen bei bestehendem Apache-Server)
+
+Benötigte Module aktivieren:
+
+```bash
+a2enmod proxy proxy_http headers
+systemctl restart apache2
+```
+
+Beispielkonfiguration übernehmen und anpassen (Domain eintragen!):
+
+```bash
+cp /opt/veranstaltungszeitplaner/deploy/apache-example.conf \
+  /etc/apache2/sites-available/veranstaltungszeitplaner.conf
+
+nano /etc/apache2/sites-available/veranstaltungszeitplaner.conf
+# -> ServerName auf die eigene (Sub-)Domain setzen, z. B. plan.example.de
+
+a2ensite veranstaltungszeitplaner
+apache2ctl configtest && systemctl reload apache2
+```
+
+HTTPS mit certbot:
+
+```bash
+apt install -y certbot python3-certbot-apache
+certbot --apache -d plan.example.de
+```
+
+certbot legt automatisch einen zusätzlichen HTTPS-VirtualHost mit den
+Zertifikatspfaden an und richtet die Umleitung von HTTP auf HTTPS sowie die
+automatische Zertifikatserneuerung ein (systemd-Timer). In diesem neuen
+HTTPS-Block noch von Hand ergänzen (siehe Kommentar in `apache-example.conf`):
+
+```apache
+RequestHeader set X-Forwarded-Proto "https"
+```
+
+Erneuerung testen:
+
+```bash
+certbot renew --dry-run
+```
+
+### 6b. Mit nginx (falls kein anderer Webserver installiert ist)
 
 nginx installieren:
 
@@ -207,10 +265,7 @@ ln -s /etc/nginx/sites-available/veranstaltungszeitplaner.conf \
 nginx -t && systemctl reload nginx
 ```
 
-### HTTPS mit certbot / Let's Encrypt
-
-Voraussetzung: Die Domain (z. B. `plan.example.de`) zeigt per DNS-A/AAAA-Record
-auf den Server, und Port 80/443 sind erreichbar.
+HTTPS mit certbot:
 
 ```bash
 apt install -y certbot python3-certbot-nginx
@@ -230,16 +285,19 @@ certbot renew --dry-run
 ## 7. Firewall (ufw)
 
 Falls `ufw` verwendet wird, nur SSH und HTTP/HTTPS öffnen – **nicht** Port 3002
-(die App soll nur über nginx erreichbar sein, sie lauscht ohnehin idealerweise
-nur auf 127.0.0.1):
+(die App soll nur über den Reverse Proxy erreichbar sein, sie lauscht ohnehin
+idealerweise nur auf 127.0.0.1):
 
 ```bash
 apt install -y ufw
 ufw allow OpenSSH
-ufw allow "Nginx Full"     # Port 80 + 443
+ufw allow "Apache Full"    # Port 80 + 443 – bei Variante 6b stattdessen "Nginx Full"
 ufw enable
 ufw status
 ```
+
+Läuft bereits Apache mit aktivem `ufw`, ist die Regel für Port 80/443
+vermutlich schon vorhanden (`ufw status` prüft das) – dann einfach überspringen.
 
 ---
 
@@ -308,11 +366,12 @@ auf einen anderen Rechner kopieren.
 Statt der Abschnitte 1–5 (Node.js, MongoDB, Systembenutzer, systemd) kann die
 App auch komplett in Containern laufen. In der Projektwurzel liegen dafür
 `Dockerfile`, `.dockerignore` und `docker-compose.yml` (App + MongoDB 7,
-Daten in benannten Volumes). Die Abschnitte 6 (nginx/HTTPS) und 7 (Firewall)
-gelten unverändert – der App-Container lauscht wie der systemd-Dienst nur auf
-`127.0.0.1:3002` (Host-Port; intern im Container läuft die App weiterhin auf
-Port 3000 – das ist bereits in der mitgelieferten `docker-compose.yml` so
-eingestellt, da 3000/3001 auf diesem Server schon von anderen Diensten belegt sind).
+Daten in benannten Volumes). Die Abschnitte 6 (Reverse Proxy/HTTPS) und 7
+(Firewall) gelten unverändert – der App-Container lauscht wie der
+systemd-Dienst nur auf `127.0.0.1:3002` (Host-Port; intern im Container läuft
+die App weiterhin auf Port 3000 – das ist bereits in der mitgelieferten
+`docker-compose.yml` so eingestellt, da 3000/3001 auf diesem Server schon von
+anderen Diensten belegt sind).
 
 ### Docker auf Debian installieren
 

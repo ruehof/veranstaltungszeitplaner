@@ -13,7 +13,8 @@ haben ein Dreipunkt-Menü (Löschen, Stummschalten, Duplizieren). Optik angelehn
   Beide Implementierungen hinter einer gemeinsamen Storage-Schnittstelle (`backend/src/storage/`).
 - **Frontend:** Vanilla HTML/CSS/JS (ES-Module), kein Framework, kein Bundler.
   Wird vom Express-Server statisch ausgeliefert (`frontend/public/`).
-- **Hosting-Ziel:** Debian Linux, systemd-Dienst, optional nginx als Reverse Proxy.
+- **Hosting-Ziel:** Debian Linux, systemd-Dienst oder Docker Compose, Apache oder nginx
+  als Reverse Proxy (Apache-Variante für Server, auf denen bereits Apache läuft).
 - **Bild-Uploads:** `multer`, Ablage unter `backend/uploads/`, ausgeliefert unter `/uploads/<datei>`.
 
 ## Ordnerstruktur
@@ -39,7 +40,8 @@ Veranstaltungszeitplaner/
 └── deploy/                  ← Deployment-Agent
     ├── DEPLOYMENT.md        ← Schritt-für-Schritt-Anleitung Debian
     ├── veranstaltungszeitplaner.service
-    └── nginx-example.conf
+    ├── apache-example.conf  ← Reverse Proxy, falls bereits Apache läuft
+    └── nginx-example.conf   ← Reverse Proxy, falls kein anderer Webserver läuft
 ```
 
 Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad relativ zu

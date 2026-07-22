@@ -31,7 +31,7 @@ Drag & Drop verschieben.
 | Datenbank | MongoDB (Treiber `mongodb`) – **oder** JSON-Datei-Fallback ohne MongoDB |
 | Frontend | Vanilla HTML/CSS/JS (ES-Module), kein Framework, kein Bundler |
 | Bild-Uploads | `multer`, Ablage unter `backend/uploads/` |
-| Hosting | Debian Linux, systemd-Dienst **oder** Docker Compose, optional nginx als Reverse Proxy |
+| Hosting | Debian Linux, systemd-Dienst **oder** Docker Compose, Apache oder nginx als Reverse Proxy |
 
 Der Express-Server liefert das Frontend (`frontend/public/`) statisch mit aus –
 es läuft also alles über einen einzigen Prozess und Port.
@@ -60,7 +60,8 @@ Veranstaltungszeitplaner/
 └── deploy/
     ├── DEPLOYMENT.md        ← Schritt-für-Schritt-Anleitung für Debian
     ├── veranstaltungszeitplaner.service
-    └── nginx-example.conf
+    ├── apache-example.conf  ← Reverse Proxy, falls bereits Apache läuft
+    └── nginx-example.conf   ← Reverse Proxy, falls kein anderer Webserver läuft
 ```
 
 ## Quickstart (lokal)
@@ -127,6 +128,6 @@ steht in [SPEC.md](SPEC.md).
 ## Hosting / Produktivbetrieb
 
 Eine ausführliche Schritt-für-Schritt-Anleitung für den Betrieb auf einem
-Debian-Server (Node.js, MongoDB, systemd, nginx, HTTPS mit Let's Encrypt,
-Backups, Updates) findet sich in
+Debian-Server (Node.js, MongoDB, systemd, Reverse Proxy mit Apache oder
+nginx, HTTPS mit Let's Encrypt, Backups, Updates) findet sich in
 [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md).
