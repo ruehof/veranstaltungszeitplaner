@@ -122,26 +122,28 @@
   white-space: nowrap;
 }
 
-/* Tagesspalten: Stundenlinien kräftig, 15-min-Hilfslinien dezent */
+/* Tagesspalten: Stundenlinien und 15-min-Hilfslinien beide transparent (rgba),
+   Stundenlinie zusätzlich etwas dicker – bleibt so auch über einem eventuell
+   gesetzten Plan-Hintergrundbild dezent lesbar statt als flächige Farbstreifen. */
 .day-col {
   position: relative;
   border-left: 1px solid var(--border);
   background-image:
-    /* kräftige Stundenlinie (oben gezeichnet) */
+    /* Stundenlinie: 2px, etwas kräftiger als die Viertelstunden-Linie */
     repeating-linear-gradient(
       to bottom,
       transparent 0,
-      transparent calc(var(--hour-height) - 1px),
-      #c9d2dc calc(var(--hour-height) - 1px),
-      #c9d2dc var(--hour-height)
+      transparent calc(var(--hour-height) - 2px),
+      rgba(9, 30, 66, 0.16) calc(var(--hour-height) - 2px),
+      rgba(9, 30, 66, 0.16) var(--hour-height)
     ),
-    /* dezente 15-Minuten-Hilfslinie */
+    /* 15-Minuten-Hilfslinie: dezent-transparent */
     repeating-linear-gradient(
       to bottom,
       transparent 0,
       transparent calc(var(--quarter-height) - 1px),
-      #eef1f5 calc(var(--quarter-height) - 1px),
-      #eef1f5 var(--quarter-height)
+      rgba(9, 30, 66, 0.06) calc(var(--quarter-height) - 1px),
+      rgba(9, 30, 66, 0.06) var(--quarter-height)
     );
 }
 
