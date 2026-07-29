@@ -1,6 +1,10 @@
 // grid.js – Aufbau des Wochenrasters (Tagesspalten, Zeitleiste, Stundenlinien)
 
-import { minutesToHHMM, DAY_NAMES, parseISODate, addDays, formatDateDE } from "./util.js";
+import { minutesToHHMM, DAY_NAMES, parseISODate, addDays, formatDateDE, clamp } from "./util.js";
+
+// Grenzen für die automatisch berechnete Stundenhöhe (Lesbarkeit vs. Bildschirmfüllung)
+const MIN_HOUR_HEIGHT = 32;
+const MAX_HOUR_HEIGHT = 140;
 
 /** Stundenhöhe in Pixel aus der CSS-Variable --hour-height lesen. */
 export function getHourHeight() {
@@ -84,6 +88,31 @@ export function renderGrid(container, schedule) {
 
   container.append(grid);
   return { grid, dayCols };
+}
+
+/**
+ * Berechnet die Stundenhöhe so, dass das Raster die tatsächlich verfügbare Höhe
+ * des Scroll-Containers ausfüllt (statt der festen CSS-Variable zu folgen), und
+ * setzt sie als --hour-height. Ohne das bliebe auf großen Bildschirmen (die
+ * .grid-scroll jetzt immer voll ausfüllen, siehe plan.css) der untere Teil leer.
+ * @returns {boolean} true, wenn sich der Wert geändert hat (Aufrufer sollte dann
+ *   einmal neu rendern, damit Zeilenhöhen/Kartenpositionen den neuen Wert nutzen).
+ */
+export function fitHourHeightToContainer(container, schedule) {
+  const headEl = container.querySelector(".day-head") || container.querySelector(".grid-corner");
+  if (!headEl) return false;
+  const totalHours = schedule.settings.endHour - schedule.settings.startHour;
+  if (totalHours <= 0) return false;
+
+  const availableBodyHeight = container.clientHeight - headEl.offsetHeight;
+  if (availableBodyHeight <= 0) return false;
+
+  const ideal = clamp(availableBodyHeight / totalHours, MIN_HOUR_HEIGHT, MAX_HOUR_HEIGHT);
+  const current = getHourHeight();
+  if (Math.abs(ideal - current) < 0.5) return false;
+
+  document.documentElement.style.setProperty("--hour-height", ideal + "px");
+  return true;
 }
 
 /**

@@ -2,7 +2,7 @@
 
 import "./mock.js"; // aktiviert sich nur bei ?mock=1
 import { api, setEditToken } from "./api.js";
-import { renderGrid, getPxPerMinute } from "./grid.js";
+import { renderGrid, getPxPerMinute, fitHourHeightToContainer } from "./grid.js";
 import { createCardElement } from "./card.js";
 import { initDragDrop } from "./dragdrop.js";
 import { initCardDialog, openCardDialog } from "./dialog.js";
@@ -79,8 +79,8 @@ function fitsGrid(card) {
   );
 }
 
-/** Alles neu rendern (Grid + Karten). Einfach und robust. */
-function renderAll() {
+/** Grid + Karten aufbauen (ohne Anpassung der Stundenhöhe – siehe renderAll). */
+function renderGridAndCards() {
   const { dayCols } = renderGrid(els.gridContainer, schedule);
   for (const card of cards) {
     if (!fitsGrid(card)) continue; // außerhalb des Rasters – bleibt gespeichert, wird ausgeblendet
@@ -100,6 +100,16 @@ function renderAll() {
     el.querySelectorAll("img").forEach((img) => {
       if (!img.complete) img.addEventListener("load", () => updateGrow(el), { once: true });
     });
+  }
+}
+
+/** Alles neu rendern (Grid + Karten), Stundenhöhe an die verfügbare Bildschirmhöhe anpassen. */
+function renderAll() {
+  renderGridAndCards();
+  // Erst nach dem ersten Rendern lässt sich die tatsächlich verfügbare Höhe messen;
+  // ändert sich die Stundenhöhe dadurch, einmal mit dem korrekten Wert neu rendern.
+  if (fitHourHeightToContainer(els.gridContainer, schedule)) {
+    renderGridAndCards();
   }
 }
 
@@ -598,3 +608,12 @@ initDragDrop(els.gridContainer, {
 setupCellClick();
 initCardViewDialog(); // Vollansicht: in beiden Modi verfügbar, unabhängig von readOnly
 load();
+
+// Bei Fenstergröße-/Bildschirmänderung die Stundenhöhe neu an die verfügbare
+// Höhe anpassen (z. B. Wechsel auf einen größeren Monitor). Leicht entprellt.
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  if (!schedule) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderAll, 150);
+});

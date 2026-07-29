@@ -43,7 +43,10 @@
 
 .grid-scroll {
   overflow: auto;
-  max-height: calc(100vh - 84px);
+  /* Feste Höhe (nicht max-height): der Container beansprucht diesen Platz immer,
+     damit plan.js daraus die Stundenhöhe berechnen kann, die das Raster exakt
+     ausfüllt – sonst bliebe auf großen Bildschirmen die untere Hälfte leer. */
+  height: calc(100vh - 84px);
   background: var(--panel);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -88,7 +91,8 @@
   padding: 8px 6px;
   background: var(--panel);
   border-bottom: 2px solid var(--border);
-  border-left: 1px solid var(--border);
+  /* Gleicher Stil wie die Tagestrennlinien im Rasterkörper (.day-col) */
+  border-left: 2px solid rgba(9, 30, 66, 0.16);
   text-align: center;
 }
 
@@ -127,7 +131,8 @@
    gesetzten Plan-Hintergrundbild dezent lesbar statt als flächige Farbstreifen. */
 .day-col {
   position: relative;
-  border-left: 1px solid var(--border);
+  /* Gleicher Stil wie die volle Stundenlinie (dieselbe Farbe/Transparenz/Dicke) */
+  border-left: 2px solid rgba(9, 30, 66, 0.16);
   background-image:
     /* Stundenlinie: 2px, etwas kräftiger als die Viertelstunden-Linie */
     repeating-linear-gradient(
@@ -622,6 +627,6 @@ body[data-mode="readonly"] .card {
     grid-template-columns: 48px repeat(var(--day-count, 7), minmax(150px, 1fr));
   }
   .grid-scroll {
-    max-height: calc(100vh - 120px);
+    height: calc(100vh - 120px);
   }
 }
