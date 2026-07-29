@@ -62,6 +62,14 @@ export const api = {
   deleteSchedule: (id) =>
     request(`api/schedules/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
+  /** Nur-Lese-Link widerrufen (neue shareId). Antwort: aktualisiertes Schedule. */
+  regenerateShareId: (id) =>
+    request(`api/schedules/${encodeURIComponent(id)}/regenerate-share-id`, { method: "POST" }),
+
+  /** Bearbeitungslink widerrufen (neues editToken). Antwort: aktualisiertes Schedule. */
+  regenerateEditToken: (id) =>
+    request(`api/schedules/${encodeURIComponent(id)}/regenerate-edit-token`, { method: "POST" }),
+
   /** Karte anlegen. */
   createCard: (scheduleId, card) =>
     request(`api/schedules/${encodeURIComponent(scheduleId)}/cards`, { method: "POST", body: card }),

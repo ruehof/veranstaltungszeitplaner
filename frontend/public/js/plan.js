@@ -19,7 +19,9 @@ import { icons } from "./icons.js";
 const params = new URLSearchParams(location.search);
 const shareParam = params.get("share");
 const idParam = params.get("id");
-const tokenParam = params.get("token");
+// let (nicht const): wird nach dem Widerrufen/Erneuern des Bearbeitungslinks aktualisiert,
+// damit die eigene Sitzung nahtlos mit dem neuen Token weiterläuft.
+let tokenParam = params.get("token");
 const readOnly = Boolean(shareParam) || !tokenParam;
 
 // ---- Zustand ----------------------------------------------------------------
@@ -57,6 +59,8 @@ const els = {
   shareEditRow: document.getElementById("share-edit-row"),
   shareEditInput: document.getElementById("share-edit-url"),
   shareViewInput: document.getElementById("share-view-url"),
+  shareEditRegenBtn: document.getElementById("share-edit-regen"),
+  shareViewRegenBtn: document.getElementById("share-view-regen"),
   shareCloseBtns: document.querySelectorAll("[data-close-share]"),
 };
 
@@ -412,6 +416,49 @@ function setupHeader() {
     els.shareEditInput.value = `${base}?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(tokenParam)}`;
     els.shareViewInput.value = `${base}?share=${encodeURIComponent(schedule.shareId)}`;
     els.shareDialog.showModal();
+  });
+
+  // "Nur-Lese-Link widerrufen, neuen erzeugen": bisherige shareId wird sofort ungültig
+  els.shareViewRegenBtn.addEventListener("click", async () => {
+    const sure = confirm(
+      "Den bisherigen Nur-Lese-Link ungültig machen und einen neuen erzeugen?\n\n" +
+        "Wer den alten Link hat, kann den Plan danach nicht mehr ansehen."
+    );
+    if (!sure) return;
+    try {
+      const updated = await api.regenerateShareId(schedule.id);
+      schedule.shareId = updated.shareId;
+      const base = location.origin + location.pathname;
+      els.shareViewInput.value = `${base}?share=${encodeURIComponent(schedule.shareId)}`;
+      showToast("Neuer Nur-Lese-Link erzeugt.", "success");
+    } catch (err) {
+      showToast(err.message || "Link konnte nicht erneuert werden.");
+    }
+  });
+
+  // "Bearbeitungslink widerrufen, neuen erzeugen": bisheriges Token wird sofort ungültig;
+  // die eigene Sitzung (URL, API-Aufrufe, "Meine Pläne") wird nahtlos auf das neue umgestellt.
+  els.shareEditRegenBtn.addEventListener("click", async () => {
+    const sure = confirm(
+      "Den bisherigen Bearbeitungslink ungültig machen und einen neuen erzeugen?\n\n" +
+        "Wer den alten Link hat (auch andere offene Tabs), verliert danach den Zugriff. " +
+        "Diese Ansicht wird automatisch auf den neuen Link umgestellt."
+    );
+    if (!sure) return;
+    try {
+      const updated = await api.regenerateEditToken(schedule.id);
+      tokenParam = updated.editToken;
+      schedule.editToken = updated.editToken;
+      setEditToken(tokenParam);
+      const newUrl = `${location.pathname}?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(tokenParam)}`;
+      history.replaceState(null, "", newUrl);
+      rememberPlan({ id: schedule.id, title: schedule.title, token: tokenParam });
+      const base = location.origin + location.pathname;
+      els.shareEditInput.value = `${base}?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(tokenParam)}`;
+      showToast("Neuer Bearbeitungslink erzeugt. Diese Seite verwendet jetzt den neuen Link.", "success");
+    } catch (err) {
+      showToast(err.message || "Link konnte nicht erneuert werden.");
+    }
   });
 
   els.shareCloseBtns.forEach((btn) => btn.addEventListener("click", () => els.shareDialog.close()));

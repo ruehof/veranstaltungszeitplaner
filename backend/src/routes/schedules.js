@@ -86,6 +86,35 @@ export function createScheduleRoutes({ storage, uploadDir }) {
     })
   );
 
+  // POST /api/schedules/:id/regenerate-share-id – Nur-Lese-Link widerrufen (neue shareId).
+  // Der alte Freigabelink wird damit sofort ungültig (404 bei /api/share/:alteShareId).
+  router.post(
+    "/schedules/:id/regenerate-share-id",
+    auth,
+    asyncHandler(async (req, res) => {
+      const schedule = await storage.updateSchedule(req.schedule.id, {
+        shareId: randomId(12),
+        updatedAt: new Date().toISOString(),
+      });
+      res.json(schedule);
+    })
+  );
+
+  // POST /api/schedules/:id/regenerate-edit-token – Bearbeitungslink widerrufen (neuer editToken).
+  // Das alte Token wird damit sofort ungültig; die Antwort enthält das neue Token,
+  // mit dem der Aufrufer seine eigene Sitzung sofort umstellen muss.
+  router.post(
+    "/schedules/:id/regenerate-edit-token",
+    auth,
+    asyncHandler(async (req, res) => {
+      const schedule = await storage.updateSchedule(req.schedule.id, {
+        editToken: randomId(24),
+        updatedAt: new Date().toISOString(),
+      });
+      res.json(schedule);
+    })
+  );
+
   // DELETE /api/schedules/:id – Plan, alle Karten und deren Upload-Bilder löschen. Antwort 204.
   router.delete(
     "/schedules/:id",

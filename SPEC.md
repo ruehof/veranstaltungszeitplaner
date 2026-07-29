@@ -133,6 +133,8 @@ bleiben unverändert bei `/api/...` und `/uploads/...`.
 | GET | `/api/schedules/:id` | Token | Plan + Karten: `{schedule, cards}`. `editToken` wird NUR bei gültigem Token mitgeliefert. |
 | GET | `/api/share/:shareId` | – | Nur-Lese-Zugriff: `{schedule, cards}` OHNE `editToken`. |
 | PATCH | `/api/schedules/:id` | Token | Titel/Settings ändern. Antwort: aktualisiertes Schedule. |
+| POST | `/api/schedules/:id/regenerate-share-id` | Token | Nur-Lese-Link widerrufen: neue `shareId`, alte wird sofort ungültig. Antwort: aktualisiertes Schedule. |
+| POST | `/api/schedules/:id/regenerate-edit-token` | Token | Bearbeitungslink widerrufen: neues `editToken`, altes wird sofort ungültig. Antwort: aktualisiertes Schedule (mit neuem Token). |
 | DELETE | `/api/schedules/:id` | Token | Plan + zugehörige Karten + deren Upload-Bilder löschen. Antwort 204. |
 | POST | `/api/schedules/:id/cards` | Token | Karte anlegen. Body: Card-Felder ohne `id/scheduleId/createdAt`. Antwort 201: Karte. |
 | PATCH | `/api/schedules/:id/cards/:cardId` | Token | Teilupdate (Position, Text, `muted`, `collapsed`, …). Antwort: Karte. |

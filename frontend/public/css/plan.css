@@ -589,6 +589,10 @@ body[data-mode="readonly"] .card {
   color: var(--text-soft);
 }
 
+.share-row .btn-small {
+  margin-top: 6px;
+}
+
 /* ---- Fehlerbox ---- */
 
 .fatal-box {

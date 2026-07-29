@@ -213,6 +213,30 @@ if (mockEnabled) {
       }
     }
 
+    // POST /api/schedules/:id/regenerate-share-id – Nur-Lese-Link widerrufen
+    if (method === "POST" && (m = url.match(/^\/api\/schedules\/([^/?]+)\/regenerate-share-id$/))) {
+      const schedule = state.schedules[m[1]];
+      if (!schedule) return errorResponse(404, "Plan nicht gefunden.");
+      if (schedule.editToken !== token)
+        return errorResponse(403, "Kein gültiges Bearbeitungs-Token.");
+      schedule.shareId = randomId(12);
+      schedule.updatedAt = nowIso();
+      persist();
+      return json(schedule);
+    }
+
+    // POST /api/schedules/:id/regenerate-edit-token – Bearbeitungslink widerrufen
+    if (method === "POST" && (m = url.match(/^\/api\/schedules\/([^/?]+)\/regenerate-edit-token$/))) {
+      const schedule = state.schedules[m[1]];
+      if (!schedule) return errorResponse(404, "Plan nicht gefunden.");
+      if (schedule.editToken !== token)
+        return errorResponse(403, "Kein gültiges Bearbeitungs-Token.");
+      schedule.editToken = randomId(24);
+      schedule.updatedAt = nowIso();
+      persist();
+      return json(schedule);
+    }
+
     // POST /api/schedules/:id/cards – Karte anlegen
     if (method === "POST" && (m = url.match(/^\/api\/schedules\/([^/?]+)\/cards$/))) {
       const schedule = state.schedules[m[1]];
