@@ -7,13 +7,16 @@ import { deleteUploadFile, deleteUploadIfUnreferenced } from "../lib/uploadFiles
 import { requireEditToken } from "./auth.js";
 
 // Routen für Wochenpläne (Schedules) inkl. Nur-Lese-Freigabe (/share/:shareId).
-export function createScheduleRoutes({ storage, uploadDir }) {
+export function createScheduleRoutes({ storage, uploadDir, createAuth }) {
   const router = Router();
   const auth = requireEditToken(storage);
 
-  // POST /api/schedules – Plan anlegen (ohne Auth). Antwort 201 inkl. editToken.
+  // POST /api/schedules – Plan anlegen. Nur mit CREATE_PASSWORD geschützt, falls gesetzt
+  // (createAuth ist sonst ein no-op) – bestehende Pläne bleiben rein tokenbasiert erreichbar.
+  // Antwort 201 inkl. editToken.
   router.post(
     "/schedules",
+    createAuth,
     asyncHandler(async (req, res) => {
       const body = req.body ?? {};
       if (typeof body.title !== "string" || body.title.trim() === "") {

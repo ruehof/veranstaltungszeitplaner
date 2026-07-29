@@ -21,7 +21,11 @@ Drag & Drop verschieben.
   - *Bearbeitungslink* (mit geheimem Token) – volle Bearbeitung,
   - *Nur-Lese-Link* (Share-ID) – nur Ansehen.
   Kein Login nötig; der Zugriffsschutz erfolgt ausschließlich über unerratbare Links.
+  Beide Links lassen sich im „Freigeben“-Dialog jederzeit widerrufen (neuer Link wird erzeugt,
+  der alte ist danach sofort ungültig).
 - **Bild-Uploads** (JPG/PNG/WebP/GIF, max. 5 MB) direkt im Termin-Dialog.
+- **Optionaler Passwortschutz fürs Anlegen neuer Pläne** (Env-Var `CREATE_PASSWORD`) – schützt
+  nur die Startseite, bestehende Pläne bleiben über ihre Links frei erreichbar.
 
 ## Technologie-Stack
 

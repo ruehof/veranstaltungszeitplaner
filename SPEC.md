@@ -17,6 +17,10 @@ haben ein Dreipunkt-Menü (Löschen, Stummschalten, Duplizieren). Optik angelehn
   als Reverse Proxy (Apache-Variante für Server, auf denen bereits Apache läuft).
 - **Bild-Uploads:** `multer`, Ablage unter `backend/uploads/`, ausgeliefert unter `/uploads/<datei>`
   (vom Frontend relativ referenziert: `uploads/<datei>`, siehe API-Vertrag unten).
+- **Zugriffsschutz fürs Plan-Anlegen (optional):** Env-Var `CREATE_PASSWORD` schützt Startseite
+  (`GET /`, `/index.html`) und `POST /api/schedules` per HTTP Basic Auth (`backend/src/routes/createAuth.js`,
+  no-op ohne gesetzte Variable). Bestehende Pläne bleiben rein tokenbasiert erreichbar –
+  Bearbeitungs-/Freigabelinks funktionieren unabhängig von diesem Passwort weiter.
 
 ## Ordnerstruktur
 
@@ -129,7 +133,7 @@ bleiben unverändert bei `/api/...` und `/uploads/...`.
 
 | Methode | Pfad | Auth | Beschreibung |
 |---|---|---|---|
-| POST | `/api/schedules` | – | Plan anlegen. Body: `{title, settings?}`. Antwort 201: vollständiges Schedule inkl. `editToken`. |
+| POST | `/api/schedules` | – (ggf. `CREATE_PASSWORD`) | Plan anlegen. Body: `{title, settings?}`. Antwort 201: vollständiges Schedule inkl. `editToken`. |
 | GET | `/api/schedules/:id` | Token | Plan + Karten: `{schedule, cards}`. `editToken` wird NUR bei gültigem Token mitgeliefert. |
 | GET | `/api/share/:shareId` | – | Nur-Lese-Zugriff: `{schedule, cards}` OHNE `editToken`. |
 | PATCH | `/api/schedules/:id` | Token | Titel/Settings ändern. Antwort: aktualisiertes Schedule. |

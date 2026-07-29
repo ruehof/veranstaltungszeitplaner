@@ -9,6 +9,7 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { createStorage } from "./src/storage/storage.js";
 import { createApiRouter } from "./src/routes/index.js";
+import { createCreateAuthMiddleware } from "./src/routes/createAuth.js";
 import { HttpError } from "./src/lib/httpError.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,12 +23,20 @@ fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = await createStorage({ dataDir });
 
+// Optionaler Passwortschutz fürs Anlegen neuer Pläne (Startseite + POST /api/schedules).
+// Ohne gesetzte CREATE_PASSWORD ist die Middleware ein no-op (bisheriges offenes Verhalten).
+const createAuth = createCreateAuthMiddleware(process.env.CREATE_PASSWORD);
+
 const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 
+// Startseite (Plan-Erstellung) vor der statischen Auslieferung abfragen –
+// plan.html bleibt für Besitzer von Bearbeitungs-/Freigabelinks frei erreichbar.
+app.get(["/", "/index.html"], createAuth, (req, res, next) => next());
+
 // API-Routen
-app.use("/api", createApiRouter({ storage, uploadDir }));
+app.use("/api", createApiRouter({ storage, uploadDir, createAuth }));
 
 // Unbekannte API-Routen einheitlich als JSON-404 beantworten
 app.use("/api", (req, res) => {

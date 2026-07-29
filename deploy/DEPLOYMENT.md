@@ -147,6 +147,22 @@ MONGODB_URI=mongodb://127.0.0.1:27017/veranstaltungszeitplaner
 Ohne MongoDB einfach die Zeile `MONGODB_URI` weglassen – dann wird der
 JSON-Datei-Store verwendet.
 
+**Optional: Startseite mit Passwort schützen.** Ohne Nutzerkonten ist jede Seite,
+die den Server erreicht, im Prinzip in der Lage, neue Pläne anzulegen – das
+schließt auch jemanden ein, der über einen inzwischen ungültigen (z. B.
+widerrufenen) Link zufällig auf die Startseite gelangt. Wer das verhindern
+möchte, trägt zusätzlich ein:
+
+```
+CREATE_PASSWORD=ein-beliebiges-passwort
+```
+
+Damit fragt der Server beim Aufruf der Startseite und beim Anlegen eines Plans
+per HTTP Basic Auth (Browser-eigener Anmeldedialog, kein eigenes Loginformular
+nötig) dieses Passwort ab. **Bereits bestehende Pläne bleiben davon unberührt**
+– Bearbeitungs- und Freigabelinks funktionieren wie gewohnt ohne dieses
+Passwort, damit eingeladene Personen nicht zusätzlich etwas wissen müssen.
+
 Zum Schluss die Besitzrechte setzen:
 
 ```bash
