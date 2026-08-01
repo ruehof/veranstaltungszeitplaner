@@ -270,7 +270,12 @@ body[data-mode="readonly"] .card {
 
 .card-body {
   padding: 0 8px 8px;
-  overflow: hidden;
+  /* KEIN overflow:hidden hier: Als Flex-Kind mit eigenem overflow:hidden würde
+     dieser Bereich (Bild+Beschreibung) sonst lautlos auf die verfügbare Höhe
+     zusammengeschrumpft (automatische Flex-Mindestgröße wird 0), OHNE dass
+     .card das über scrollHeight bemerkt – "grow" würde dann nie greifen und
+     Inhalt bliebe unsichtbar abgeschnitten. Die äußere .card (overflow:hidden,
+     feste Höhe) klemmt optisch trotzdem ab, bis plan.js "grow" hinzufügt. */
   flex: 1 1 auto;
 }
 

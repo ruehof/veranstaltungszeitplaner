@@ -188,6 +188,13 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   wächst die Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`, `height: auto`, höherer
   z-Index) – dabei darf sie einen nachfolgenden Termin in derselben Tagesspalte überlappen
   (liegt sichtbar darüber), damit der Inhalt der gewachsenen Karte vollständig lesbar bleibt.
+  Wichtig: `.card-body` selbst darf KEIN `overflow: hidden` haben – als Flex-Kind würde es
+  sonst lautlos auf die verfügbare Höhe zusammengeschrumpft (automatische Flex-Mindestgröße
+  wird bei `overflow≠visible` zu 0), ohne dass `.card`s `scrollHeight`-Vergleich (in
+  `plan.js`, `updateGrow()`) das bemerkt – „grow“ würde dann nie greifen und Bild/Text
+  blieben dauerhaft unsichtbar abgeschnitten, besonders bei Bildern (deren tatsächliche
+  Höhe erst nach dem Laden feststeht). Das äußere `.card` (eigenes `overflow: hidden`,
+  feste Slot-Höhe) klemmt optisch weiterhin ab, bis `grow` hinzukommt.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von
