@@ -182,12 +182,20 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   abgeschnittener Titel.
   Optional eingefärbter Kartenkörper (`bgColor`, Palette: Pastelltöne + kräftige
   Farbleisten-Farben), Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf
-  Kartenbreite, kein Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung
-  ein/aus (`collapsed` wird gespeichert). Passt der Inhalt dennoch nicht in die Slot-Höhe
-  (z. B. sehr kurze Termine unter 30 Minuten oder ausgeklappt mit Bild/langer Beschreibung),
-  wächst die Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`, `height: auto`, höherer
-  z-Index) – dabei darf sie einen nachfolgenden Termin in derselben Tagesspalte überlappen
-  (liegt sichtbar darüber), damit der Inhalt der gewachsenen Karte vollständig lesbar bleibt.
+  Kartenbreite, kein Zuschnitt), Beschreibung.
+  **Bild + Beschreibung sind immer sichtbar** (auch eingeklappt/„collapsed“) – NICHT mehr
+  `display:none`. Eingeklappt bleibt die Karte bewusst in ihrer Slot-Höhe (`grow` wird
+  dabei übersprungen) und zeigt dadurch eine Vorschau, die von der äußeren `.card`
+  (`overflow:hidden`, feste Höhe) exakt an der End-Zeit des Termins abgeschnitten wird.
+  Klick auf Pfeil-Icon klappt aus (`collapsed:false`, wird gespeichert) – erst dann darf die
+  Karte bei zu wenig Platz über ihr Zeitfenster hinauswachsen (CSS-Klasse `grow`,
+  `height:auto`, `z-index:5`) und dabei einen nachfolgenden Termin in derselben Tagesspalte
+  überlappen (liegt sichtbar darüber), damit der komplette Inhalt lesbar wird. `z-index:5`
+  ist bewusst höher als `:hover`s `z-index:3` – sonst würde eine lediglich mit der Maus
+  überfahrene, nicht gewachsene Nachbarkarte die gewachsene Karte optisch verdecken.
+  Kopfzeile: Button „Alle ausklappen“/„Alle einklappen“ (Text togglet je nach aktuellem
+  Zustand aller Karten) setzt `collapsed` für alle Karten des Plans auf einmal; in beiden
+  Modi verfügbar, im Nur-Lese-Modus nur lokal (keine Persistierung).
   Wichtig: `.card-body` selbst darf KEIN `overflow: hidden` haben – als Flex-Kind würde es
   sonst lautlos auf die verfügbare Höhe zusammengeschrumpft (automatische Flex-Mindestgröße
   wird bei `overflow≠visible` zu 0), ohne dass `.card`s `scrollHeight`-Vergleich (in
@@ -195,6 +203,7 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   blieben dauerhaft unsichtbar abgeschnitten, besonders bei Bildern (deren tatsächliche
   Höhe erst nach dem Laden feststeht). Das äußere `.card` (eigenes `overflow: hidden`,
   feste Slot-Höhe) klemmt optisch weiterhin ab, bis `grow` hinzukommt.
+  `updateGrow()` wird nur für ausgeklappte Karten (`!card.collapsed`) aufgerufen.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von

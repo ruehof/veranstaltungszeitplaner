@@ -191,15 +191,19 @@ body[data-mode="readonly"] .card {
 }
 
 .card.resizing {
-  z-index: 4;
+  z-index: 6;
 }
 
-/* Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), wächst die Karte
-   über ihr Zeitfenster hinaus (plan.js setzt die Klasse nach dem Messen).
-   Beim Resizen gilt wieder die Inline-Höhe, damit der Griff sichtbar zieht. */
+/* Ausgeklappt (nicht "collapsed") und Inhalt passt nicht in die Slot-Höhe:
+   Karte wächst über ihr Zeitfenster hinaus (plan.js setzt die Klasse nach dem
+   Messen) und darf dabei einen nachfolgenden Termin überlappen. z-index 5 ist
+   bewusst höher als :hover (3) – sonst würde eine lediglich mit der Maus
+   überfahrene, nicht gewachsene Nachbarkarte die gewachsene Karte optisch
+   verdecken. Beim Resizen gilt wieder die Inline-Höhe, damit der Griff
+   sichtbar zieht. */
 .card.grow:not(.resizing) {
   height: auto !important;
-  z-index: 3;
+  z-index: 5;
 }
 
 /* Kopfleiste: NUR der Titel steht auf der Farbfläche (Standard: Blau) – er hat
@@ -279,9 +283,11 @@ body[data-mode="readonly"] .card {
   flex: 1 1 auto;
 }
 
-.card.collapsed .card-body {
-  display: none;
-}
+/* Bild + Beschreibung sind IMMER sichtbar (auch eingeklappt) – im
+   eingeklappten Zustand als Vorschau, die von der äußeren .card (feste
+   Slot-Höhe, overflow:hidden) an der End-Zeit des Termins abgeschnitten wird.
+   Erst beim Ausklappen darf die Karte wachsen ("grow", siehe plan.js), um den
+   kompletten Inhalt zu zeigen. Deshalb hier bewusst KEIN display:none mehr. */
 
 /* Kartenbild: skaliert mit festem Seitenverhältnis auf die Kartenbreite (kein Zuschnitt) */
 .card-image {

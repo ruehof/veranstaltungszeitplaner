@@ -12,8 +12,10 @@ Drag & Drop verschieben.
   Beschreibung.
 - **Drag & Drop**: Karten greifen und verschieben (auch zwischen Tagen), Einrasten
   am 15-Minuten-Raster; Dauer per Griff am unteren Kartenrand ändern.
-- **Ein-/ausklappbar**: Bild und Beschreibung lassen sich pro Karte ein- und
-  ausklappen (Zustand wird gespeichert).
+- **Ein-/ausklappbar**: Bild und Beschreibung sind immer als Vorschau sichtbar (an der
+  End-Zeit des Termins abgeschnitten); ausgeklappt wächst die Karte bei Bedarf über ihr
+  Zeitfenster hinaus, um alles vollständig zu zeigen (Zustand wird gespeichert). Button
+  „Alle ausklappen“/„Alle einklappen“ schaltet alle Karten des Plans auf einmal um.
 - **Dreipunkt-Menü** pro Karte: Duplizieren, Stummschalten/Aktivieren
   (stummgeschaltete Karten werden ausgegraut dargestellt), Löschen (mit Bestätigung),
   Bearbeiten.

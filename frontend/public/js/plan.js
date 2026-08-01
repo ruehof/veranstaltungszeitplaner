@@ -36,6 +36,7 @@ const els = {
   titleInput: document.getElementById("plan-title"),
   readonlyBadge: document.getElementById("readonly-badge"),
   addBtn: document.getElementById("add-card-btn"),
+  toggleAllBtn: document.getElementById("toggle-all-btn"),
   exportBtn: document.getElementById("export-btn"),
   settingsBtn: document.getElementById("settings-btn"),
   settingsDialog: document.getElementById("settings-dialog"),
@@ -93,13 +94,16 @@ function renderGridAndCards() {
       onMaximize: openCardView,
     });
     col.append(el);
-    // Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), darf die Karte
-    // über ihr Zeitfenster hinauswachsen – so bleibt die Beschreibung lesbar.
-    updateGrow(el);
-    // Bilder skalieren auf Kartenbreite und laden verzögert ⇒ nach dem Laden neu messen
-    el.querySelectorAll("img").forEach((img) => {
-      if (!img.complete) img.addEventListener("load", () => updateGrow(el), { once: true });
-    });
+    // Eingeklappt: Vorschau bleibt bewusst in der Slot-Höhe (an der End-Zeit
+    // abgeschnitten), darf NICHT wachsen. Erst ausgeklappt darf die Karte bei
+    // zu wenig Platz über ihr Zeitfenster hinauswachsen, damit alles lesbar wird.
+    if (!card.collapsed) {
+      updateGrow(el);
+      // Bilder skalieren auf Kartenbreite und laden verzögert ⇒ nach dem Laden neu messen
+      el.querySelectorAll("img").forEach((img) => {
+        if (!img.complete) img.addEventListener("load", () => updateGrow(el), { once: true });
+      });
+    }
   }
 }
 
@@ -111,6 +115,13 @@ function renderAll() {
   if (fitHourHeightToContainer(els.gridContainer, schedule)) {
     renderGridAndCards();
   }
+  updateToggleAllButton();
+}
+
+/** Beschriftung des Sammel-Buttons an den aktuellen Zustand aller Karten anpassen. */
+function updateToggleAllButton() {
+  const allExpanded = cards.length > 0 && cards.every((c) => !c.collapsed);
+  els.toggleAllBtn.textContent = allExpanded ? "Alle einklappen" : "Alle ausklappen";
 }
 
 function updateGrow(el) {
@@ -147,6 +158,24 @@ function toggleCollapse(card) {
     renderAll();
     showToast(err.message);
   });
+}
+
+/** Sammel-Button "Alle aus-/einklappen": toggelt alle Karten auf denselben Zustand. */
+async function toggleAllCollapse() {
+  const allExpanded = cards.length > 0 && cards.every((c) => !c.collapsed);
+  const targetCollapsed = allExpanded; // aktuell alle ausgeklappt ⇒ jetzt alle einklappen, sonst umgekehrt
+  const changed = cards.filter((c) => c.collapsed !== targetCollapsed);
+  if (changed.length === 0) return;
+  for (const c of changed) c.collapsed = targetCollapsed;
+  renderAll();
+  if (readOnly) return;
+  try {
+    await Promise.all(changed.map((c) => api.patchCard(schedule.id, c.id, { collapsed: targetCollapsed })));
+  } catch (err) {
+    // Bewusst kein granulares Zurückrollen bei Teilausfällen – einzelne Karten
+    // können bereits gespeichert sein; Nutzer kann bei Bedarf erneut klicken.
+    showToast(err.message || "Konnte nicht für alle Termine gespeichert werden.");
+  }
 }
 
 /** Stummschalten/Aktivieren (optimistisch mit Rücknahme bei Fehler). */
@@ -363,6 +392,9 @@ function setupHeader() {
 
   // Export als JSON-Datei (im Bearbeitungs- UND Nur-Lese-Modus verfügbar)
   els.exportBtn.addEventListener("click", exportPlan);
+
+  // Alle Karten auf einmal ein-/ausklappen (ebenfalls in beiden Modi verfügbar)
+  els.toggleAllBtn.addEventListener("click", toggleAllCollapse);
 
   if (readOnly) {
     document.body.dataset.mode = "readonly";
