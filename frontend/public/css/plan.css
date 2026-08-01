@@ -194,12 +194,6 @@ body[data-mode="readonly"] .card {
   z-index: 4;
 }
 
-/* Farbige Kopfleiste (bewusst kräftig, damit die Farbe gut erkennbar ist) */
-.card-colorbar {
-  flex: 0 0 14px;
-  background: var(--accent);
-}
-
 /* Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin), wächst die Karte
    über ihr Zeitfenster hinaus (plan.js setzt die Klasse nach dem Messen).
    Beim Resizen gilt wieder die Inline-Höhe, damit der Griff sichtbar zieht. */
@@ -208,30 +202,24 @@ body[data-mode="readonly"] .card {
   z-index: 3;
 }
 
-.card-top {
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  padding: 5px 6px 3px 8px;
-}
-
-.card-titles {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.card-title-row {
+/* Kopfleiste: Titel steht direkt auf der Farbfläche (Standard: Blau), Zeit und
+   Aktionen in derselben Zeile – eine einzige kompakte Zeile statt vormals
+   Farbleiste + eigene Titel-/Zeit-Zeile, damit ein eingeklappter
+   30-Minuten-Termin ins halbstündige Raster passt. */
+.card-header {
   display: flex;
   align-items: center;
-  gap: 5px;
-  min-width: 0;
+  gap: 6px;
+  padding: 1px 6px 1px 8px;
 }
 
 .card-title {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -239,15 +227,15 @@ body[data-mode="readonly"] .card {
 
 .card-mute-icon {
   display: inline-flex;
-  color: var(--text-soft);
   flex: 0 0 auto;
 }
 
 .card-time {
-  display: block;
-  font-size: 11.5px;
-  color: var(--text-soft);
+  flex: 0 0 auto;
+  font-size: 10.5px;
   font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+  white-space: nowrap;
 }
 
 .card-actions {
@@ -256,9 +244,24 @@ body[data-mode="readonly"] .card {
   flex: 0 0 auto;
 }
 
-.card-actions .icon-btn {
-  width: 22px;
-  height: 22px;
+/* Kopfleiste hat immer eine Farbfläche als Hintergrund (mind. Standardblau) –
+   Titel/Zeit/Icons erben daher immer die von card.js aufgelöste Textfarbe
+   (Standard Weiß, oder die vom Nutzer gewählte eigene Textfarbe). */
+.card-header .card-title,
+.card-header .card-mute-icon,
+.card-header .card-time,
+.card-header .icon-btn {
+  color: inherit;
+}
+
+.card-header .icon-btn {
+  width: 18px;
+  height: 18px;
+}
+
+.card-header .icon-btn:hover {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  color: inherit;
 }
 
 /* Chevron dreht sich im eingeklappten Zustand */
@@ -304,18 +307,11 @@ body[data-mode="readonly"] .card {
   word-break: break-all; /* lange URLs sprengen die Karte nicht */
 }
 
-/* Eigene Textfarbe (textColor): Titel, Zeit, Beschreibung und Icons erben sie */
-.card.custom-text .card-title,
-.card.custom-text .card-time,
+/* Eigene Textfarbe (textColor) für die Beschreibung (Kartenkörper bleibt sonst
+   dunkel auf Weiß/Hintergrundfarbe – Titel/Zeit/Icons regelt bereits .card-header). */
 .card.custom-text .card-desc,
-.card.custom-text .card-desc a,
-.card.custom-text .card-mute-icon {
+.card.custom-text .card-desc a {
   color: inherit;
-}
-
-.card.custom-text .card-actions .icon-btn {
-  color: inherit;
-  opacity: 0.8;
 }
 
 /* Stummgeschaltet: ausgegraut/halbtransparent */

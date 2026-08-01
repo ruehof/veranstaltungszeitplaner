@@ -168,13 +168,18 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
 - **Drag & Drop** mit Pointer Events (kein HTML5-DnD): Karte greifen, Geist-Vorschau am
   15-Minuten-Raster einrasten, beim Loslassen PATCH an Server. Auch Tag-Wechsel per Drag.
 - **Größe ändern:** Griff am unteren Kartenrand zieht `durationMinutes` (15-min-Raster).
-- **Karte:** farbige Kopfleiste (`color`), optional eingefärbter Kartenkörper (`bgColor`,
-  Palette: Pastelltöne + kräftige Farbleisten-Farben), Titel, Uhrzeit (z.B. „08:00–09:30“),
-  Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf Kartenbreite, kein
-  Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung ein/aus
-  (`collapsed` wird gespeichert). Passt der Inhalt nicht in die Slot-Höhe (kurzer Termin),
-  wächst die ausgeklappte Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`), damit die
-  Beschreibung lesbar bleibt.
+- **Karte:** Kopfzeile (`.card-header`) ist die farbige Fläche selbst (`color`, Standard
+  Blau `var(--accent)`) und enthält Titel, Uhrzeit und die Aktions-Icons in einer einzigen
+  kompakten Zeile (Standard-Textfarbe darauf: Weiß, außer eine eigene Textfarbe ist gesetzt).
+  Bewusst so knapp gehalten (Icons 18px, minimales Padding), dass ein eingeklappter
+  30-Minuten-Termin bei üblichen Bildschirmhöhen ohne `grow` ins halbstündige Raster passt.
+  Optional eingefärbter Kartenkörper (`bgColor`, Palette: Pastelltöne + kräftige
+  Farbleisten-Farben), Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf
+  Kartenbreite, kein Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung
+  ein/aus (`collapsed` wird gespeichert). Passt der Inhalt dennoch nicht in die Slot-Höhe
+  (z. B. sehr kurze Termine unter 30 Minuten oder ausgeklappt mit Bild/langer Beschreibung),
+  wächst die Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`), damit der Inhalt lesbar
+  bleibt.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von

@@ -27,39 +27,33 @@ export function createCardElement(card, opts) {
     el.classList.add("custom-text"); // Titel/Zeit/Beschreibung/Icons erben die Farbe (CSS)
   }
 
-  // Farbige Kopfleiste
-  const colorBar = document.createElement("div");
-  colorBar.className = "card-colorbar";
-  if (card.color) colorBar.style.background = card.color;
-  el.append(colorBar);
+  // Kopfleiste: Titel steht direkt in der Farbleiste (Standardfarbe: Blau),
+  // Zeit + Aktionen daneben in derselben Zeile – kompakt genug, damit ein
+  // eingeklappter 30-Minuten-Termin ins halbstündige Raster passt.
+  const header = document.createElement("div");
+  header.className = "card-header";
+  header.style.background = card.color || "var(--accent)";
+  // Weiße Schrift als Standard auf der (immer farbigen) Kopfleiste – außer eine
+  // eigene Textfarbe wurde gewählt, die kaskadiert dann bereits von el.style.color.
+  if (!card.textColor) header.style.color = "#ffffff";
 
-  // Kopfzeile: Titel + Zeit links, Buttons rechts
-  const top = document.createElement("div");
-  top.className = "card-top";
-
-  const titles = document.createElement("div");
-  titles.className = "card-titles";
-
-  const titleRow = document.createElement("div");
-  titleRow.className = "card-title-row";
   const title = document.createElement("h3");
   title.className = "card-title";
   title.textContent = card.title;
-  titleRow.append(title);
+  header.append(title);
+
   if (card.muted) {
     const muteIcon = document.createElement("span");
     muteIcon.className = "card-mute-icon";
     muteIcon.title = "Stummgeschaltet";
     muteIcon.innerHTML = icons.mute;
-    titleRow.append(muteIcon);
+    header.append(muteIcon);
   }
-  titles.append(titleRow);
 
   const time = document.createElement("span");
   time.className = "card-time";
   time.textContent = formatRange(card.startMinutes, card.durationMinutes);
-  titles.append(time);
-  top.append(titles);
+  header.append(time);
 
   const actions = document.createElement("div");
   actions.className = "card-actions";
@@ -105,8 +99,8 @@ export function createCardElement(card, opts) {
     actions.append(menuBtn);
   }
 
-  top.append(actions);
-  el.append(top);
+  header.append(actions);
+  el.append(header);
 
   // Körper: Bild + mehrzeilige Beschreibung (bei collapsed via CSS ausgeblendet)
   const body = document.createElement("div");
