@@ -173,19 +173,21 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   darauf: Weiß, außer eine eigene Textfarbe ist gesetzt) – so hat er die volle Kartenbreite
   für sich und wird nicht durch Zeit/Icons vorzeitig mit „…“ abgeschnitten. Zeile 2
   (`.card-subheader`, normaler Karten-Hintergrund) enthält Uhrzeit (Anfang–Ende),
-  Stummschaltungs-Hinweis und die Aktions-Icons. Die Mindest-Stundenhöhe (`MIN_HOUR_HEIGHT`
-  in `grid.js`, aktuell 104px) ist bewusst so bemessen, dass diese zweizeilige Kopfzeile
-  (zusammen ca. 50px) bei einem eingeklappten 30-Minuten-Termin ohne `grow` ins halbstündige
-  Raster passt – das kann bei vielen konfigurierten Stunden (z. B. Standard 06–20 Uhr) auf
-  kleineren Bildschirmen zu vertikalem Scrollen im Raster führen; das ist bewusst in Kauf
-  genommen zugunsten lesbarer, nicht abgeschnittener Titel.
+  Stummschaltungs-Hinweis und die Aktions-Icons; Abstand zwischen beiden Zeilen bewusst knapp
+  gehalten. Die Mindest-Stundenhöhe (`MIN_HOUR_HEIGHT` in `grid.js`, aktuell 96px) ist bewusst
+  so bemessen, dass diese zweizeilige Kopfzeile (zusammen ca. 45,5px) bei einem eingeklappten
+  30-Minuten-Termin ohne `grow` ins halbstündige Raster passt – das kann bei vielen
+  konfigurierten Stunden (z. B. Standard 06–20 Uhr) auf kleineren Bildschirmen zu vertikalem
+  Scrollen im Raster führen; das ist bewusst in Kauf genommen zugunsten lesbarer, nicht
+  abgeschnittener Titel.
   Optional eingefärbter Kartenkörper (`bgColor`, Palette: Pastelltöne + kräftige
   Farbleisten-Farben), Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf
   Kartenbreite, kein Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung
   ein/aus (`collapsed` wird gespeichert). Passt der Inhalt dennoch nicht in die Slot-Höhe
   (z. B. sehr kurze Termine unter 30 Minuten oder ausgeklappt mit Bild/langer Beschreibung),
-  wächst die Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`), damit der Inhalt lesbar
-  bleibt.
+  wächst die Karte über ihr Zeitfenster hinaus (CSS-Klasse `grow`, `height: auto`, höherer
+  z-Index) – dabei darf sie einen nachfolgenden Termin in derselben Tagesspalte überlappen
+  (liegt sichtbar darüber), damit der Inhalt der gewachsenen Karte vollständig lesbar bleibt.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von

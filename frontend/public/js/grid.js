@@ -4,9 +4,9 @@ import { minutesToHHMM, DAY_NAMES, parseISODate, addDays, formatDateDE, clamp } 
 
 // Grenzen für die automatisch berechnete Stundenhöhe (Lesbarkeit vs. Bildschirmfüllung).
 // MIN so bemessen, dass ein eingeklappter 30-Minuten-Termin (halbe Stundenhöhe) die
-// zweizeilige Kartenkopfzeile (Titel + Zeit/Icons, zusammen ca. 50px) bequem fasst.
-const MIN_HOUR_HEIGHT = 104;
-const MAX_HOUR_HEIGHT = 160;
+// zweizeilige Kartenkopfzeile (Titel + Zeit/Icons, zusammen ca. 45,5px) bequem fasst.
+const MIN_HOUR_HEIGHT = 96;
+const MAX_HOUR_HEIGHT = 150;
 
 /** Stundenhöhe in Pixel aus der CSS-Variable --hour-height lesen. */
 export function getHourHeight() {
