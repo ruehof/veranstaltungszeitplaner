@@ -27,9 +27,9 @@ export function createCardElement(card, opts) {
     el.classList.add("custom-text"); // Titel/Zeit/Beschreibung/Icons erben die Farbe (CSS)
   }
 
-  // Kopfleiste: Titel steht direkt in der Farbleiste (Standardfarbe: Blau),
-  // Zeit + Aktionen daneben in derselben Zeile – kompakt genug, damit ein
-  // eingeklappter 30-Minuten-Termin ins halbstündige Raster passt.
+  // Kopfleiste: NUR der Titel steht auf der Farbfläche (Standardfarbe: Blau) –
+  // damit er nie mit Zeit/Icons um Platz konkurrieren muss und nicht ständig
+  // mit "…" abgeschnitten wird. Zeit + Aktionen stehen in der Zeile darunter.
   const header = document.createElement("div");
   header.className = "card-header";
   header.style.background = card.color || "var(--accent)";
@@ -41,19 +41,24 @@ export function createCardElement(card, opts) {
   title.className = "card-title";
   title.textContent = card.title;
   header.append(title);
+  el.append(header);
+
+  // Unterzeile: Uhrzeit (Anfang–Ende), Stummschaltungs-Hinweis, Aktions-Icons
+  const subheader = document.createElement("div");
+  subheader.className = "card-subheader";
+
+  const time = document.createElement("span");
+  time.className = "card-time";
+  time.textContent = formatRange(card.startMinutes, card.durationMinutes);
+  subheader.append(time);
 
   if (card.muted) {
     const muteIcon = document.createElement("span");
     muteIcon.className = "card-mute-icon";
     muteIcon.title = "Stummgeschaltet";
     muteIcon.innerHTML = icons.mute;
-    header.append(muteIcon);
+    subheader.append(muteIcon);
   }
-
-  const time = document.createElement("span");
-  time.className = "card-time";
-  time.textContent = formatRange(card.startMinutes, card.durationMinutes);
-  header.append(time);
 
   const actions = document.createElement("div");
   actions.className = "card-actions";
@@ -99,8 +104,8 @@ export function createCardElement(card, opts) {
     actions.append(menuBtn);
   }
 
-  header.append(actions);
-  el.append(header);
+  subheader.append(actions);
+  el.append(subheader);
 
   // Körper: Bild + mehrzeilige Beschreibung (bei collapsed via CSS ausgeblendet)
   const body = document.createElement("div");

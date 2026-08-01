@@ -168,11 +168,17 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
 - **Drag & Drop** mit Pointer Events (kein HTML5-DnD): Karte greifen, Geist-Vorschau am
   15-Minuten-Raster einrasten, beim Loslassen PATCH an Server. Auch Tag-Wechsel per Drag.
 - **Größe ändern:** Griff am unteren Kartenrand zieht `durationMinutes` (15-min-Raster).
-- **Karte:** Kopfzeile (`.card-header`) ist die farbige Fläche selbst (`color`, Standard
-  Blau `var(--accent)`) und enthält Titel, Uhrzeit und die Aktions-Icons in einer einzigen
-  kompakten Zeile (Standard-Textfarbe darauf: Weiß, außer eine eigene Textfarbe ist gesetzt).
-  Bewusst so knapp gehalten (Icons 18px, minimales Padding), dass ein eingeklappter
-  30-Minuten-Termin bei üblichen Bildschirmhöhen ohne `grow` ins halbstündige Raster passt.
+- **Karte:** Zweizeilige Kopfzeile. Zeile 1 (`.card-header`) ist die farbige Fläche selbst
+  (`color`, Standard Blau `var(--accent)`) und enthält NUR den Titel (Standard-Textfarbe
+  darauf: Weiß, außer eine eigene Textfarbe ist gesetzt) – so hat er die volle Kartenbreite
+  für sich und wird nicht durch Zeit/Icons vorzeitig mit „…“ abgeschnitten. Zeile 2
+  (`.card-subheader`, normaler Karten-Hintergrund) enthält Uhrzeit (Anfang–Ende),
+  Stummschaltungs-Hinweis und die Aktions-Icons. Die Mindest-Stundenhöhe (`MIN_HOUR_HEIGHT`
+  in `grid.js`, aktuell 104px) ist bewusst so bemessen, dass diese zweizeilige Kopfzeile
+  (zusammen ca. 50px) bei einem eingeklappten 30-Minuten-Termin ohne `grow` ins halbstündige
+  Raster passt – das kann bei vielen konfigurierten Stunden (z. B. Standard 06–20 Uhr) auf
+  kleineren Bildschirmen zu vertikalem Scrollen im Raster führen; das ist bewusst in Kauf
+  genommen zugunsten lesbarer, nicht abgeschnittener Titel.
   Optional eingefärbter Kartenkörper (`bgColor`, Palette: Pastelltöne + kräftige
   Farbleisten-Farben), Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf
   Kartenbreite, kein Zuschnitt), Beschreibung. Klick auf Pfeil-Icon klappt Bild+Beschreibung
