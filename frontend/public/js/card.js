@@ -1,6 +1,6 @@
 // card.js – Aufbau einer Terminkarte (Trello-artig) als DOM-Element
 
-import { formatRange } from "./util.js";
+import { formatRange, transparencyToOpacity } from "./util.js";
 import { icons } from "./icons.js";
 import { getPxPerMinute } from "./grid.js";
 
@@ -21,6 +21,7 @@ export function createCardElement(card, opts) {
   if (card.muted) el.classList.add("muted");
   el.style.top = (card.startMinutes - startHour * 60) * pxPerMin + "px";
   el.style.height = card.durationMinutes * pxPerMin + "px";
+  el.style.opacity = String(transparencyToOpacity(card.transparency));
   if (card.bgColor) el.style.background = card.bgColor;
   if (card.textColor) {
     el.style.color = card.textColor;

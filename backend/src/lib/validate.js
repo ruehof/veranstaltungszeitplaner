@@ -189,6 +189,23 @@ export function sanitizeCardInput(body, { partial = false } = {}) {
     out.textColor = null;
   }
 
+  // Transparenz in Prozent (0 = voll deckend, 100 = komplett durchsichtig).
+  // null ⇒ Frontend verwendet den Standardwert (20 %).
+  if (body.transparency !== undefined) {
+    if (
+      body.transparency !== null &&
+      (typeof body.transparency !== "number" ||
+        !Number.isFinite(body.transparency) ||
+        body.transparency < 0 ||
+        body.transparency > 100)
+    ) {
+      throw new HttpError(400, "transparency muss eine Zahl zwischen 0 und 100 oder null sein.");
+    }
+    out.transparency = body.transparency;
+  } else if (!partial) {
+    out.transparency = null;
+  }
+
   for (const flag of ["collapsed", "muted"]) {
     if (body[flag] !== undefined) {
       if (typeof body[flag] !== "boolean") {

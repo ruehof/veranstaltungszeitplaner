@@ -50,6 +50,16 @@ export const DAY_NAMES = {
   So: "Sonntag",
 };
 
+/** Standard-Transparenz einer Karte in Prozent (0 = voll deckend, 100 = komplett
+ *  durchsichtig), verwendet wenn card.transparency null ist. */
+export const DEFAULT_CARD_TRANSPARENCY = 20;
+
+/** Transparenz (0–100, "wie durchsichtig") in CSS-opacity (0–1, "wie deckend") umrechnen. */
+export function transparencyToOpacity(transparency) {
+  const t = clamp(transparency ?? DEFAULT_CARD_TRANSPARENCY, 0, 100);
+  return (100 - t) / 100;
+}
+
 /** Vordefinierte Kartenfarben (Trello-Palette). */
 export const CARD_COLORS = [
   { value: "#61bd4f", label: "Grün" },

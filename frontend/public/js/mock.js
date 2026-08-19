@@ -256,6 +256,7 @@ if (mockEnabled) {
         color: body.color || null,
         bgColor: body.bgColor || null,
         textColor: body.textColor || null,
+        transparency: typeof body.transparency === "number" ? body.transparency : null,
         collapsed: Boolean(body.collapsed),
         muted: Boolean(body.muted),
         createdAt: nowIso(),

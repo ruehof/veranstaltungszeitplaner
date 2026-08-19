@@ -93,6 +93,7 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "color": "string | null (CSS-Farbe für Kartenleiste)",
   "bgColor": "string | null (CSS-Hintergrundfarbe des Kartenkörpers, null = Weiß)",
   "textColor": "string | null (CSS-Textfarbe der Karte, null = Standard dunkel)",
+  "transparency": "number | null (0-100, 0 = voll deckend, 100 = komplett durchsichtig; null = Standard 20)",
   "collapsed": false,
   "muted": false,
   "createdAt": "ISO-8601",
@@ -183,6 +184,13 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   Optional eingefärbter Kartenkörper (`bgColor`, Palette: Pastelltöne + kräftige
   Farbleisten-Farben), Bild (falls vorhanden; skaliert mit festem Seitenverhältnis auf
   Kartenbreite, kein Zuschnitt), Beschreibung.
+  **Transparenz-Regler** (`transparency`, 0–100 %, Standard 20 %) im Termin-Dialog steuert
+  die Deckkraft der gesamten Karte (`el.style.opacity`, inline – wirkt daher stärker als
+  CSS-Klassen). `null` ⇒ Standardwert 20 % (`DEFAULT_CARD_TRANSPARENCY` in `util.js`), gilt
+  automatisch auch für bereits bestehende Karten ohne gespeicherten Wert. Stummschaltung
+  (`muted`) beeinflusst die Deckkraft NICHT mehr, sondern nur noch einen Graustich-Filter –
+  beide Eigenschaften sind unabhängig kombinierbar. Die Vollansicht (Maximieren) bleibt
+  bewusst immer voll deckend, unabhängig vom Regler.
   **Bild + Beschreibung sind immer sichtbar** (auch eingeklappt/„collapsed“) – NICHT mehr
   `display:none`. Eingeklappt bleibt die Karte bewusst in ihrer Slot-Höhe (`grow` wird
   dabei übersprungen) und zeigt dadurch eine Vorschau, die von der äußeren `.card`

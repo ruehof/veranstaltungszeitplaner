@@ -9,7 +9,8 @@ Drag & Drop verschieben.
 - **Wochenplan Mo–So**: Horizontale Achse = Wochentage, vertikale Achse = Uhrzeiten
   (Standard 06:00–20:00 Uhr) im **15-Minuten-Raster**.
 - **Terminkarten** mit Titel, Uhrzeit, farbiger Kopfleiste, Bild und mehrzeiliger
-  Beschreibung.
+  Beschreibung. Deckkraft per Transparenz-Regler im Termin-Dialog einstellbar
+  (Standard 20 % Transparenz).
 - **Drag & Drop**: Karten greifen und verschieben (auch zwischen Tagen), Einrasten
   am 15-Minuten-Raster; Dauer per Griff am unteren Kartenrand ändern.
 - **Ein-/ausklappbar**: Bild und Beschreibung sind immer als Vorschau sichtbar (an der
@@ -17,8 +18,8 @@ Drag & Drop verschieben.
   Zeitfenster hinaus, um alles vollständig zu zeigen (Zustand wird gespeichert). Button
   „Alle ausklappen“/„Alle einklappen“ schaltet alle Karten des Plans auf einmal um.
 - **Dreipunkt-Menü** pro Karte: Duplizieren, Stummschalten/Aktivieren
-  (stummgeschaltete Karten werden ausgegraut dargestellt), Löschen (mit Bestätigung),
-  Bearbeiten.
+  (stummgeschaltete Karten werden per Graustich-Filter erkennbar gemacht, unabhängig
+  von der Transparenz-Einstellung), Löschen (mit Bestätigung), Bearbeiten.
 - **Freigabe per Link**:
   - *Bearbeitungslink* (mit geheimem Token) – volle Bearbeitung,
   - *Nur-Lese-Link* (Share-ID) – nur Ansehen.

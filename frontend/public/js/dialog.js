@@ -1,6 +1,13 @@
 // dialog.js – Termin-Dialog (<dialog>) zum Anlegen und Bearbeiten von Karten
 
-import { minutesToHHMM, CARD_COLORS, CARD_BG_COLORS, CARD_TEXT_COLORS, DAY_NAMES } from "./util.js";
+import {
+  minutesToHHMM,
+  CARD_COLORS,
+  CARD_BG_COLORS,
+  CARD_TEXT_COLORS,
+  DAY_NAMES,
+  DEFAULT_CARD_TRANSPARENCY,
+} from "./util.js";
 import { showToast } from "./toast.js";
 
 let config = null; // { getSchedule, uploadImage(file), onSubmit(payload, existingCard) }
@@ -25,6 +32,8 @@ export function initCardDialog(options) {
     colors: document.getElementById("cd-colors"),
     bgColors: document.getElementById("cd-bgcolors"),
     textColors: document.getElementById("cd-textcolors"),
+    transparency: document.getElementById("cd-transparency"),
+    transparencyValue: document.getElementById("cd-transparency-value"),
     day: document.getElementById("cd-day"),
     start: document.getElementById("cd-start"),
     duration: document.getElementById("cd-duration"),
@@ -41,6 +50,9 @@ export function initCardDialog(options) {
   fields.cancel.addEventListener("click", () => dlg.close());
   fields.close.addEventListener("click", () => dlg.close());
   fields.start.addEventListener("change", () => rebuildDurationOptions());
+  fields.transparency.addEventListener("input", () => {
+    fields.transparencyValue.textContent = fields.transparency.value;
+  });
 
   form.addEventListener("submit", onSubmit);
 }
@@ -192,6 +204,7 @@ export function openCardDialog(card = null, defaults = {}) {
     selectSwatch(fields.colors, "cd-color", card.color);
     selectSwatch(fields.bgColors, "cd-bgcolor", card.bgColor || "");
     selectSwatch(fields.textColors, "cd-textcolor", card.textColor || "");
+    setTransparency(card.transparency ?? DEFAULT_CARD_TRANSPARENCY);
   } else {
     fields.heading.textContent = "Neuer Termin";
     fields.save.textContent = "Anlegen";
@@ -205,10 +218,17 @@ export function openCardDialog(card = null, defaults = {}) {
     selectSwatch(fields.colors, "cd-color", CARD_COLORS[0].value);
     selectSwatch(fields.bgColors, "cd-bgcolor", "");
     selectSwatch(fields.textColors, "cd-textcolor", "");
+    setTransparency(DEFAULT_CARD_TRANSPARENCY);
   }
 
   dlg.showModal();
   fields.title.focus();
+}
+
+/** Transparenz-Regler + Live-Anzeige auf einen Wert (0–100) setzen. */
+function setTransparency(value) {
+  fields.transparency.value = String(value);
+  fields.transparencyValue.textContent = String(value);
 }
 
 /** Farb-Radio anhand des Wertes auswählen (unbekannte Farbe ⇒ erste). */
@@ -243,6 +263,7 @@ async function onSubmit(event) {
     color: colorInput ? colorInput.value : null,
     bgColor: bgInput && bgInput.value ? bgInput.value : null,
     textColor: textInput && textInput.value ? textInput.value : null,
+    transparency: parseInt(fields.transparency.value, 10),
     day: parseInt(fields.day.value, 10),
     startMinutes: parseInt(fields.start.value, 10),
     durationMinutes: parseInt(fields.duration.value, 10),

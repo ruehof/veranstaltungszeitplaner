@@ -328,8 +328,10 @@ body[data-mode="readonly"] .card {
 }
 
 /* Stummgeschaltet: ausgegraut/halbtransparent */
+/* Deckkraft kommt jetzt immer vom Transparenz-Regler (el.style.opacity in
+   card.js, wirkt per Inline-Style ohnehin stärker als diese Klasse) –
+   Stummschaltung bleibt allein am Graustich erkennbar. */
 .card.muted {
-  opacity: 0.55;
   filter: grayscale(0.6);
 }
 

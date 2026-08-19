@@ -537,6 +537,7 @@ function exportPlan() {
       color: c.color,
       bgColor: c.bgColor ?? null,
       textColor: c.textColor ?? null,
+      transparency: c.transparency ?? null,
       day: c.day,
       startMinutes: c.startMinutes,
       durationMinutes: c.durationMinutes,

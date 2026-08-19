@@ -83,6 +83,7 @@ importFile.addEventListener("change", async () => {
           color: typeof card.color === "string" ? card.color : null,
           bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
           textColor: typeof card.textColor === "string" ? card.textColor : null,
+          transparency: typeof card.transparency === "number" ? card.transparency : null,
           day: card.day,
           startMinutes: card.startMinutes,
           durationMinutes: card.durationMinutes,
