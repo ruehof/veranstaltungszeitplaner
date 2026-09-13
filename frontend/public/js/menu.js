@@ -47,7 +47,12 @@ export function openMenu(anchor, items) {
     menu.append(button);
   }
 
-  document.body.append(menu);
+  // Öffnet ein <dialog> (z. B. Termin- oder Packlisten-Dialog) einen eigenen "Top Layer",
+  // in dem alles außerhalb dieses Dialogs unsichtbar dahinter läge – ein an document.body
+  // gehängtes Menü wäre dann trotz z-index vom modalen Dialog verdeckt. Deshalb das Menü
+  // dem nächsten offenen <dialog>-Vorfahren des Ankers anhängen, falls vorhanden.
+  const container = anchor.closest("dialog[open]") || document.body;
+  container.append(menu);
   currentMenu = menu;
 
   // Position: unter dem Anker, am Fensterrand nach innen geklappt
