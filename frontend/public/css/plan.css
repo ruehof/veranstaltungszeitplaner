@@ -632,6 +632,44 @@ body[data-mode="readonly"] .card {
   padding: 4px 6px;
 }
 
+.packing-editor-thumb-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+
+.packing-editor-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.packing-editor-thumb-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.packing-editor-thumb-remove svg {
+  width: 10px;
+  height: 10px;
+}
+
 /* ---- Packliste abhaken ("Packen": eingepackt/ausgepackt) ---- */
 
 .packing-check-list {
@@ -654,6 +692,15 @@ body[data-mode="readonly"] .card {
 
 .packing-check-row:last-child {
   border-bottom: none;
+}
+
+.packing-check-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex: 0 0 auto;
 }
 
 .packing-check-text {

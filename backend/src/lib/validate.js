@@ -152,11 +152,15 @@ function sanitizePackingList(value) {
       throw new HttpError(400, `Ein Packlisten-Eintrag darf höchstens ${MAX_PACKING_ITEM_TEXT} Zeichen lang sein.`);
     }
     const id = typeof item.id === "string" && item.id.trim() !== "" ? item.id.trim() : randomId(10);
+    if (item.imageUrl !== undefined && item.imageUrl !== null && typeof item.imageUrl !== "string") {
+      throw new HttpError(400, "Das Foto eines Packlisten-Eintrags muss eine Text-URL oder null sein.");
+    }
     return {
       id,
       text,
       packed: item.packed === true,
       unpacked: item.unpacked === true,
+      imageUrl: item.imageUrl ?? null,
     };
   });
 }

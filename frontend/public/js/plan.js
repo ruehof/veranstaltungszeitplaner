@@ -8,6 +8,7 @@ import { initDragDrop } from "./dragdrop.js";
 import { initCardDialog, openCardDialog } from "./dialog.js";
 import { initCardViewDialog, openCardView } from "./cardview.js";
 import { initPackingEditor, initPackingCheck, openPackingCheck } from "./packing.js";
+import { exportPlanDump } from "./dump.js";
 import { createScheduleSettingsForm } from "./scheduleform.js";
 import { openMenu } from "./menu.js";
 import { showToast } from "./toast.js";
@@ -407,8 +408,13 @@ function setupHeader() {
   document.title = `${schedule.title} – Veranstaltungszeitplaner`;
   els.titleInput.value = schedule.title;
 
-  // Export als JSON-Datei (im Bearbeitungs- UND Nur-Lese-Modus verfügbar)
-  els.exportBtn.addEventListener("click", exportPlan);
+  // Export als JSON- oder ZIP-Datei (im Bearbeitungs- UND Nur-Lese-Modus verfügbar)
+  els.exportBtn.addEventListener("click", () => {
+    openMenu(els.exportBtn, [
+      { label: "Als JSON exportieren (nur Text, ohne Bilder)", onClick: exportPlan },
+      { label: "Als ZIP exportieren (mit allen Bildern)", onClick: exportPlanZip },
+    ]);
+  });
 
   // Alle Karten auf einmal ein-/ausklappen (ebenfalls in beiden Modi verfügbar)
   els.toggleAllBtn.addEventListener("click", toggleAllCollapse);
@@ -559,6 +565,7 @@ function exportPlan() {
         text: item.text,
         packed: Boolean(item.packed),
         unpacked: Boolean(item.unpacked),
+        imageUrl: item.imageUrl ?? null,
       })),
       day: c.day,
       startMinutes: c.startMinutes,
@@ -575,6 +582,23 @@ function exportPlan() {
   link.click();
   URL.revokeObjectURL(link.href);
   showToast("Plan als JSON-Datei exportiert.", "success");
+}
+
+/** Plan komplett als ZIP herunterladen (inkl. aller Bilddateien). */
+async function exportPlanZip() {
+  try {
+    const { imagesTotal, imagesFailed } = await exportPlanDump(schedule, cards);
+    if (imagesFailed > 0) {
+      showToast(
+        `Plan als ZIP exportiert, ${imagesFailed} von ${imagesTotal} Bildern konnten nicht geladen werden.`,
+        "info"
+      );
+    } else {
+      showToast("Plan als ZIP-Datei exportiert.", "success");
+    }
+  } catch (err) {
+    showToast(err.message || "ZIP-Export fehlgeschlagen.");
+  }
 }
 
 // ---- Erläuterungs-Popup (Nur-Lese- oder Bearbeitungslink) -----------------------------
@@ -662,7 +686,7 @@ initDragDrop(els.gridContainer, {
 });
 setupCellClick();
 initCardViewDialog(); // Vollansicht: in beiden Modi verfügbar, unabhängig von readOnly
-initPackingEditor(); // Packlisten-Editor: Teil des Termin-Dialogs, wird nur im Bearbeitungsmodus geöffnet
+initPackingEditor({ uploadImage: (file) => api.uploadImage(schedule.id, file) }); // Packlisten-Editor: Teil des Termin-Dialogs, wird nur im Bearbeitungsmodus geöffnet
 initPackingCheck(); // Packliste abhaken ("Packen"): in beiden Modi verfügbar
 load();
 

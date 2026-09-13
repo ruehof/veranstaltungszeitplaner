@@ -95,7 +95,13 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "textColor": "string | null (CSS-Textfarbe der Karte, null = Standard dunkel)",
   "transparency": "number | null (0-100, 0 = voll deckend, 100 = komplett durchsichtig; null = Standard 20)",
   "packingList": [
-    { "id": "string (10 Zeichen, zufällig)", "text": "string", "packed": false, "unpacked": false }
+    {
+      "id": "string (10 Zeichen, zufällig)",
+      "text": "string",
+      "packed": false,
+      "unpacked": false,
+      "imageUrl": "string | null (Foto des Eintrags, relativ, z.B. uploads/abc123.jpg)"
+    }
   ],
   "collapsed": false,
   "muted": false,
@@ -243,6 +249,13 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   (nichts wird überschrieben) und startet sie immer unangehakt, auch wenn die Datei
   abweichende Werte enthält. So lässt sich eine Packliste als Vorlage für andere Termine
   wiederverwenden, ohne den ganzen Plan exportieren zu müssen.
+  Jeder Eintrag kann außerdem ein Foto haben (`imageUrl`, Kamera-Icon je Zeile): Upload
+  über dieselbe Upload-Route wie Kartenbilder (`POST /api/schedules/:id/uploads`), Vorschau
+  als kleines Vorschaubild in der Zeile mit „×“ zum Entfernen. Das Foto erscheint auch in
+  der Abhak-Ansicht („Packen“) neben dem Text, damit der Eintrag leichter wiederzuerkennen
+  ist. Wird ein Eintrag mit Foto gelöscht oder sein Foto ersetzt/entfernt, räumt der Server
+  die verwaiste Upload-Datei automatisch auf (sofern kein anderer Eintrag/Karte/Hintergrund
+  sie noch referenziert) – analog zum bestehenden Aufräumen bei Kartenbildern.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von
@@ -270,14 +283,35 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   Links öffnen in neuem Tab (`rel="noopener noreferrer"`).
 - **Textfarbe:** Palette `CARD_TEXT_COLORS` (Standard dunkel, Weiß, Hellgelb, Grau sowie
   dunkle Töne); bei gesetzter `textColor` erben Titel, Zeit, Beschreibung und Icons die Farbe.
-- **Export/Import:** „Exportieren“ (Planseite, beide Modi) lädt den Plan als JSON-Datei
-  herunter: `{format: "veranstaltungszeitplaner", version: 1, title, settings, cards[]}`
-  (Karten ohne `id`/`scheduleId`). „Plan aus JSON-Datei importieren…“ (Startseite) legt
-  daraus einen NEUEN Plan mit eigenen Links an; Karten, die nicht ins Raster passen,
-  werden gezählt übersprungen. Bild-URLs werden unverändert übernommen (funktionieren
-  nur, solange die Uploads auf demselben Server existieren). `packingList` wird mit
-  exportiert/importiert (ohne `id` – der Server vergibt beim Import neue ids), der
-  Packstatus (`packed`/`unpacked`) bleibt dabei erhalten.
+- **Export/Import (JSON, nur Text):** „Exportieren“ (Planseite, beide Modi) → „Als JSON
+  exportieren“ lädt den Plan als JSON-Datei herunter:
+  `{format: "veranstaltungszeitplaner", version: 1, title, settings, cards[]}` (Karten ohne
+  `id`/`scheduleId`). „Plan importieren…“ (Startseite) legt daraus einen NEUEN Plan mit
+  eigenen Links an; Karten, die nicht ins Raster passen, werden gezählt übersprungen.
+  Bild-URLs (Karten, Hintergrund, Packlisten-Fotos) werden dabei nur als TEXT-Referenz
+  unverändert übernommen (funktionieren nur, solange die referenzierten Uploads auf
+  demselben Server noch existieren) – für einen vollständigen, server-unabhängigen Export
+  siehe ZIP-Export unten. `packingList` wird mit exportiert/importiert (ohne `id` – der
+  Server vergibt beim Import neue ids), der Packstatus (`packed`/`unpacked`) bleibt dabei
+  erhalten.
+- **Export/Import (ZIP, komplett inkl. Bilddateien):** „Exportieren“ → „Als ZIP exportieren“
+  (`js/dump.js`, `js/zip.js`) lädt zusätzlich zu Titel/Einstellungen/Karten/Packlisten ALLE
+  referenzierten Bilddateien (Kartenbilder, Plan-Hintergrund, Packlisten-Fotos) als echte
+  Dateien mit herunter: eine ZIP-Datei mit `manifest.json`
+  (`{format: "veranstaltungszeitplaner-dump", version: 1, title, settings, cards[]}`, wobei
+  jede `imageUrl` durch eine ZIP-interne Referenz `images/<dateiname>` ersetzt ist) sowie
+  einem `images/`-Ordner mit den tatsächlichen Bilddateien. Rein clientseitig: Bilder werden
+  einfach über ihre bereits öffentlichen `uploads/`-URLs abgerufen (`fetch`), das ZIP wird im
+  Browser gebaut (eigener minimaler ZIP-Writer, Methode „store“/unkomprimiert – für bereits
+  komprimierte Bildformate ohnehin ohne Vorteil durch Deflate) – kein neuer Server-Endpunkt
+  nötig. „Plan importieren…“ (Startseite) erkennt ZIP-Dateien an der Endung, legt einen NEUEN
+  Plan an, lädt alle Bilder aus dem ZIP über die normale Upload-Route hoch (neue, eigene
+  Dateinamen auf dem Ziel-Server) und verknüpft sie mit Karten/Packlisten-Einträgen. Der
+  ZIP-Reader unterstützt zum Einlesen sowohl unkomprimiert („store“) als auch Deflate
+  (`DecompressionStream("deflate-raw")`, nativ im Browser) – robust auch gegenüber ZIPs, die
+  zwischenzeitlich in einem externen Tool (7-Zip, Windows, macOS Archive Utility) neu gepackt
+  wurden. Funktioniert dadurch auch als Umzug eines kompletten Plans auf einen anderen
+  Server, ohne dass alte Bild-Uploads dort vorhanden sein müssen.
 - Sprache der Oberfläche: **Deutsch**. Design: hell, freundlich, Trello-artige Karten mit
   abgerundeten Ecken und dezentem Schatten; Akzentfarbe Blau (#0079bf-Familie).
 

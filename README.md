@@ -26,7 +26,8 @@ Drag & Drop verschieben.
   unabhängig „Eingepackt“ und „Ausgepackt“ (nach dem Termin wieder zurückgebracht) abhaken.
   Funktioniert in BEIDEN Modi, auch über den Nur-Lese-Link. Einzelne Packlisten lassen sich
   im Editor als JSON-Datei exportieren/importieren, um sie als Vorlage für andere Termine
-  wiederzuverwenden.
+  wiederzuverwenden. Jeder Eintrag kann außerdem ein eigenes Foto bekommen (Kamera-Icon),
+  das auch in der Abhak-Ansicht angezeigt wird.
 - **Freigabe per Link**:
   - *Bearbeitungslink* (mit geheimem Token) – volle Bearbeitung,
   - *Nur-Lese-Link* (Share-ID) – nur Ansehen.
@@ -34,6 +35,11 @@ Drag & Drop verschieben.
   Beide Links lassen sich im „Freigeben“-Dialog jederzeit widerrufen (neuer Link wird erzeugt,
   der alte ist danach sofort ungültig).
 - **Bild-Uploads** (JPG/PNG/WebP/GIF, max. 5 MB) direkt im Termin-Dialog.
+- **Plan-Export/-Import**: „Exportieren“ bietet zwei Varianten – als JSON (nur Text, kompakt,
+  aber Bilder funktionieren nur, solange die Uploads auf demselben Server bleiben) oder als
+  ZIP inklusive aller Bilddateien (Kartenbilder, Plan-Hintergrund, Packlisten-Fotos) – damit
+  lässt sich ein Plan vollständig sichern oder auf einen anderen Server umziehen. Import
+  (Startseite) erkennt beide Formate automatisch.
 - **Optionaler Passwortschutz fürs Anlegen neuer Pläne** (Env-Var `CREATE_PASSWORD`) – schützt
   nur die Startseite, bestehende Pläne bleiben über ihre Links frei erreichbar.
 

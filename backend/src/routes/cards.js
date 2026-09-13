@@ -56,6 +56,18 @@ export function createCardRoutes({ storage, uploadDir }) {
         const cards = await storage.getCards(req.schedule.id);
         await deleteUploadIfUnreferenced(uploadDir, existing.imageUrl, cards);
       }
+      // Wurde die Packliste geändert, Fotos entfernter/ersetzter Einträge ebenso aufräumen
+      if (fields.packingList !== undefined) {
+        const oldImages = (existing.packingList || []).map((item) => item.imageUrl).filter(Boolean);
+        const newImages = new Set(fields.packingList.map((item) => item.imageUrl).filter(Boolean));
+        const removedImages = oldImages.filter((url) => !newImages.has(url));
+        if (removedImages.length > 0) {
+          const cards = await storage.getCards(req.schedule.id);
+          for (const url of removedImages) {
+            await deleteUploadIfUnreferenced(uploadDir, url, cards);
+          }
+        }
+      }
       res.json(card);
     })
   );
@@ -88,9 +100,14 @@ export function createCardRoutes({ storage, uploadDir }) {
     asyncHandler(async (req, res) => {
       const card = await getCardOr404(req.schedule.id, req.params.cardId);
       await storage.deleteCard(req.schedule.id, card.id);
-      if (card.imageUrl) {
+      const images = [card.imageUrl, ...(card.packingList || []).map((item) => item.imageUrl)].filter(
+        Boolean
+      );
+      if (images.length > 0) {
         const remaining = await storage.getCards(req.schedule.id);
-        await deleteUploadIfUnreferenced(uploadDir, card.imageUrl, remaining);
+        for (const url of images) {
+          await deleteUploadIfUnreferenced(uploadDir, url, remaining);
+        }
       }
       res.status(204).end();
     })

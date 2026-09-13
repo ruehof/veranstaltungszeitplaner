@@ -23,10 +23,15 @@ let editorImportBtn, editorImportFile, editorExportBtn;
 let editorItems = [];
 let editorOnChange = null;
 let editorFileBase = "packliste";
+let editorUploadImage = null;
 let dragSrcId = null;
 
-/** Editor-Dialog einmalig verdrahten. */
-export function initPackingEditor() {
+/**
+ * Editor-Dialog einmalig verdrahten.
+ * @param {object} options  { uploadImage(file) => Promise<{url}> } – für Eintrags-Fotos
+ */
+export function initPackingEditor(options) {
+  editorUploadImage = options.uploadImage;
   editorDlg = document.getElementById("packing-editor-dialog");
   editorHeading = document.getElementById("packing-editor-heading");
   editorList = document.getElementById("packing-editor-list");
@@ -52,7 +57,7 @@ export function initPackingEditor() {
  * @param {string} [cardTitle] Termin-Titel, für Dialog-Überschrift und Export-Dateiname
  */
 export function openPackingEditor(list, onChange, cardTitle) {
-  editorItems = (list || []).map((item) => ({ ...item }));
+  editorItems = (list || []).map((item) => ({ ...item, imageUrl: item.imageUrl ?? null }));
   editorOnChange = onChange;
   editorHeading.textContent = cardTitle ? `Packliste – ${cardTitle}` : "Packliste";
   editorFileBase = (cardTitle || "").replace(/[\\/:*?"<>|]+/g, "").trim() || "packliste";
@@ -125,7 +130,7 @@ function emitChange() {
 }
 
 function addItem() {
-  const item = { id: makeLocalId(), text: "", packed: false, unpacked: false };
+  const item = { id: makeLocalId(), text: "", packed: false, unpacked: false, imageUrl: null };
   editorItems.push(item);
   renderEditorList();
   const row = editorList.querySelector(`[data-id="${item.id}"]`);
@@ -151,6 +156,37 @@ function buildEditorRow(item) {
   handle.innerHTML = icons.dragHandle;
   li.append(handle);
 
+  const photoInput = document.createElement("input");
+  photoInput.type = "file";
+  photoInput.accept = "image/jpeg,image/png,image/webp,image/gif";
+  photoInput.hidden = true;
+  photoInput.addEventListener("change", () => onPhotoPicked(item, photoInput));
+  li.append(photoInput);
+
+  if (item.imageUrl) {
+    const thumbWrap = document.createElement("span");
+    thumbWrap.className = "packing-editor-thumb-wrap";
+
+    const thumb = document.createElement("img");
+    thumb.className = "packing-editor-thumb";
+    thumb.src = item.imageUrl;
+    thumb.alt = "";
+    thumbWrap.append(thumb);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "packing-editor-thumb-remove";
+    removeBtn.title = "Foto entfernen";
+    removeBtn.innerHTML = icons.close;
+    removeBtn.addEventListener("click", () => {
+      item.imageUrl = null;
+      renderEditorList();
+    });
+    thumbWrap.append(removeBtn);
+
+    li.append(thumbWrap);
+  }
+
   const text = document.createElement("span");
   text.className = "packing-editor-text";
   text.textContent = item.text || "(ohne Titel)";
@@ -162,6 +198,14 @@ function buildEditorRow(item) {
   input.maxLength = 200;
   input.hidden = true;
   li.append(input);
+
+  const photoBtn = document.createElement("button");
+  photoBtn.type = "button";
+  photoBtn.className = "icon-btn";
+  photoBtn.title = item.imageUrl ? "Foto ändern" : "Foto hinzufügen";
+  photoBtn.innerHTML = icons.camera;
+  photoBtn.addEventListener("click", () => photoInput.click());
+  li.append(photoBtn);
 
   const editBtn = document.createElement("button");
   editBtn.type = "button";
@@ -211,6 +255,24 @@ function buildEditorRow(item) {
   });
 
   return li;
+}
+
+/** Foto für einen Eintrag hochladen (sofort, wie beim Kartenbild im Termin-Dialog). */
+async function onPhotoPicked(item, input) {
+  const file = input.files && input.files[0];
+  input.value = "";
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("Das Bild ist größer als 5 MB.");
+    return;
+  }
+  try {
+    const result = await editorUploadImage(file);
+    item.imageUrl = result.url;
+    renderEditorList();
+  } catch (err) {
+    showToast(err.message || "Bild-Upload fehlgeschlagen.");
+  }
 }
 
 function reorderItems(srcId, targetId, before) {
@@ -295,6 +357,14 @@ export function openPackingCheck(card, onToggle) {
 function buildCheckRow(item, onToggle) {
   const li = document.createElement("li");
   li.className = "packing-check-row";
+
+  if (item.imageUrl) {
+    const thumb = document.createElement("img");
+    thumb.className = "packing-check-thumb";
+    thumb.src = item.imageUrl;
+    thumb.alt = "";
+    li.append(thumb);
+  }
 
   const text = document.createElement("span");
   text.className = "packing-check-text";

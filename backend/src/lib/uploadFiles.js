@@ -15,10 +15,14 @@ export async function deleteUploadFile(uploadDir, imageUrl) {
   }
 }
 
-// Löscht die Upload-Datei nur, wenn keine der übergebenen Karten dieselbe imageUrl referenziert.
+// Löscht die Upload-Datei nur, wenn keine der übergebenen Karten dieselbe imageUrl referenziert
+// (weder als eigenes Kartenbild noch als Foto eines Packlisten-Eintrags).
 export async function deleteUploadIfUnreferenced(uploadDir, imageUrl, remainingCards) {
   if (!imageUrl) return;
-  const stillUsed = remainingCards.some((card) => card.imageUrl === imageUrl);
+  const stillUsed = remainingCards.some(
+    (card) =>
+      card.imageUrl === imageUrl || (card.packingList || []).some((item) => item.imageUrl === imageUrl)
+  );
   if (!stillUsed) {
     await deleteUploadFile(uploadDir, imageUrl);
   }

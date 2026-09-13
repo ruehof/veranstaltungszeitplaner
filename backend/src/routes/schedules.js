@@ -125,6 +125,11 @@ export function createScheduleRoutes({ storage, uploadDir, createAuth }) {
     asyncHandler(async (req, res) => {
       const cards = await storage.getCards(req.schedule.id);
       const imageUrls = new Set(cards.map((c) => c.imageUrl).filter(Boolean));
+      for (const card of cards) {
+        for (const item of card.packingList || []) {
+          if (item.imageUrl) imageUrls.add(item.imageUrl);
+        }
+      }
       if (req.schedule.settings.backgroundImage) {
         imageUrls.add(req.schedule.settings.backgroundImage);
       }

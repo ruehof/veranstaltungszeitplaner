@@ -7,6 +7,7 @@ import { showToast } from "./toast.js";
 import { withMock } from "./util.js";
 import { icons } from "./icons.js";
 import { createScheduleSettingsForm } from "./scheduleform.js";
+import { importPlanDump } from "./dump.js";
 
 const form = document.getElementById("create-form");
 const titleInput = document.getElementById("cf-title");
@@ -50,7 +51,7 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-// ---- Import aus JSON-Datei ---------------------------------------------------
+// ---- Import aus JSON- oder ZIP-Datei ------------------------------------------
 
 importBtn.addEventListener("click", () => importFile.click());
 
@@ -59,60 +60,10 @@ importFile.addEventListener("change", async () => {
   if (!file) return;
   importBtn.disabled = true;
   try {
-    const data = JSON.parse(await file.text());
-    if (
-      !data ||
-      typeof data.title !== "string" ||
-      typeof data.settings !== "object" ||
-      !Array.isArray(data.cards)
-    ) {
-      throw new Error("Das ist keine gültige Wochenplan-Datei (JSON-Export erwartet).");
-    }
-
-    // Neuen Plan anlegen, dann die Karten einzeln übernehmen
-    const schedule = await api.createSchedule({ title: data.title, settings: data.settings });
-    setEditToken(schedule.editToken);
-
-    let failed = 0;
-    for (const card of data.cards) {
-      try {
-        await api.createCard(schedule.id, {
-          title: typeof card.title === "string" && card.title.trim() ? card.title : "Ohne Titel",
-          description: typeof card.description === "string" ? card.description : "",
-          imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : null,
-          color: typeof card.color === "string" ? card.color : null,
-          bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
-          textColor: typeof card.textColor === "string" ? card.textColor : null,
-          transparency: typeof card.transparency === "number" ? card.transparency : null,
-          packingList: Array.isArray(card.packingList)
-            ? card.packingList
-                .filter((item) => item && typeof item.text === "string" && item.text.trim())
-                .map((item) => ({
-                  text: item.text.trim(),
-                  packed: Boolean(item.packed),
-                  unpacked: Boolean(item.unpacked),
-                }))
-            : [],
-          day: card.day,
-          startMinutes: card.startMinutes,
-          durationMinutes: card.durationMinutes,
-          collapsed: Boolean(card.collapsed),
-          muted: Boolean(card.muted),
-        });
-      } catch {
-        failed++; // z. B. Karte passt nicht ins Raster – restliche Karten trotzdem übernehmen
-      }
-    }
-
-    rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
-    const target = withMock(
-      `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
-    );
-    if (failed > 0) {
-      showToast(`${failed} von ${data.cards.length} Terminen konnten nicht übernommen werden.`);
-      setTimeout(() => (location.href = target), 1800);
+    if (file.name.toLowerCase().endsWith(".zip")) {
+      await importFromZip(file);
     } else {
-      location.href = target;
+      await importFromJson(file);
     }
   } catch (err) {
     showToast(err.message || "Import fehlgeschlagen.");
@@ -121,6 +72,85 @@ importFile.addEventListener("change", async () => {
     importFile.value = "";
   }
 });
+
+/** Neuen Plan aus einer JSON-Exportdatei anlegen (nur Text, ohne Bilddateien). */
+async function importFromJson(file) {
+  const data = JSON.parse(await file.text());
+  if (
+    !data ||
+    typeof data.title !== "string" ||
+    typeof data.settings !== "object" ||
+    !Array.isArray(data.cards)
+  ) {
+    throw new Error("Das ist keine gültige Wochenplan-Datei (JSON-Export erwartet).");
+  }
+
+  // Neuen Plan anlegen, dann die Karten einzeln übernehmen
+  const schedule = await api.createSchedule({ title: data.title, settings: data.settings });
+  setEditToken(schedule.editToken);
+
+  let failed = 0;
+  for (const card of data.cards) {
+    try {
+      await api.createCard(schedule.id, {
+        title: typeof card.title === "string" && card.title.trim() ? card.title : "Ohne Titel",
+        description: typeof card.description === "string" ? card.description : "",
+        imageUrl: typeof card.imageUrl === "string" ? card.imageUrl : null,
+        color: typeof card.color === "string" ? card.color : null,
+        bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
+        textColor: typeof card.textColor === "string" ? card.textColor : null,
+        transparency: typeof card.transparency === "number" ? card.transparency : null,
+        packingList: Array.isArray(card.packingList)
+          ? card.packingList
+              .filter((item) => item && typeof item.text === "string" && item.text.trim())
+              .map((item) => ({
+                text: item.text.trim(),
+                packed: Boolean(item.packed),
+                unpacked: Boolean(item.unpacked),
+                imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : null,
+              }))
+          : [],
+        day: card.day,
+        startMinutes: card.startMinutes,
+        durationMinutes: card.durationMinutes,
+        collapsed: Boolean(card.collapsed),
+        muted: Boolean(card.muted),
+      });
+    } catch {
+      failed++; // z. B. Karte passt nicht ins Raster – restliche Karten trotzdem übernehmen
+    }
+  }
+
+  rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
+  const target = withMock(
+    `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
+  );
+  if (failed > 0) {
+    showToast(`${failed} von ${data.cards.length} Terminen konnten nicht übernommen werden.`);
+    setTimeout(() => (location.href = target), 1800);
+  } else {
+    location.href = target;
+  }
+}
+
+/** Neuen Plan aus einer ZIP-Exportdatei anlegen (inkl. aller Bilddateien). */
+async function importFromZip(file) {
+  const { schedule, cardsTotal, cardsFailed, imagesTotal, imagesFailed } = await importPlanDump(file);
+
+  rememberPlan({ id: schedule.id, title: schedule.title, token: schedule.editToken });
+  const target = withMock(
+    `plan.html?id=${encodeURIComponent(schedule.id)}&token=${encodeURIComponent(schedule.editToken)}`
+  );
+  const problems = [];
+  if (cardsFailed > 0) problems.push(`${cardsFailed} von ${cardsTotal} Terminen`);
+  if (imagesFailed > 0) problems.push(`${imagesFailed} von ${imagesTotal} Bildern`);
+  if (problems.length > 0) {
+    showToast(`Konnte nicht vollständig übernommen werden: ${problems.join(", ")}.`);
+    setTimeout(() => (location.href = target), 1800);
+  } else {
+    location.href = target;
+  }
+}
 
 /** Liste "Meine Pläne" aus localStorage rendern. */
 function renderPlanList() {
