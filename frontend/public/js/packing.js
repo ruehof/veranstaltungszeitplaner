@@ -326,8 +326,9 @@ function startEditRow(li, item) {
 // ---- Abhak-Ansicht "Packen" (eingepackt/ausgepackt, beide Modi) ---------------------
 
 let checkDlg, checkHeading, checkList, checkDoneBtn, checkCloseBtn;
+let lightboxDlg, lightboxImage;
 
-/** Abhak-Dialog einmalig verdrahten. */
+/** Abhak-Dialog (und die Foto-Großansicht) einmalig verdrahten. */
 export function initPackingCheck() {
   checkDlg = document.getElementById("packing-check-dialog");
   checkHeading = document.getElementById("packing-check-heading");
@@ -337,6 +338,17 @@ export function initPackingCheck() {
 
   checkDoneBtn.addEventListener("click", () => checkDlg.close());
   checkCloseBtn.addEventListener("click", () => checkDlg.close());
+
+  lightboxDlg = document.getElementById("photo-lightbox-dialog");
+  lightboxImage = document.getElementById("photo-lightbox-image");
+  // Kein eigener Schließen-Button nötig: Klick (auf Bild oder Rand) oder Escape schließen.
+  lightboxDlg.addEventListener("click", () => lightboxDlg.close());
+}
+
+/** Foto in Großansicht öffnen (Klick auf die kleine Vorschau in der Abhak-Ansicht). */
+function openPhotoLightbox(url) {
+  lightboxImage.src = url;
+  lightboxDlg.showModal();
 }
 
 /**
@@ -358,21 +370,43 @@ function buildCheckRow(item, onToggle) {
   const li = document.createElement("li");
   li.className = "packing-check-row";
 
+  // Foto + Text in einer Gruppe (kann bei wenig Platz schrumpfen/Text abschneiden) …
+  const info = document.createElement("div");
+  info.className = "packing-check-info";
+
   if (item.imageUrl) {
     const thumb = document.createElement("img");
     thumb.className = "packing-check-thumb";
     thumb.src = item.imageUrl;
     thumb.alt = "";
-    li.append(thumb);
+    thumb.title = "Foto vergrößern";
+    thumb.tabIndex = 0;
+    thumb.setAttribute("role", "button");
+    thumb.setAttribute("aria-label", "Foto vergrößern");
+    thumb.addEventListener("click", () => openPhotoLightbox(item.imageUrl));
+    thumb.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openPhotoLightbox(item.imageUrl);
+      }
+    });
+    info.append(thumb);
   }
 
   const text = document.createElement("span");
   text.className = "packing-check-text";
   text.textContent = item.text;
-  li.append(text);
+  info.append(text);
+  li.append(info);
 
-  li.append(buildCheckOption(item, "packed", "Eingepackt", onToggle));
-  li.append(buildCheckOption(item, "unpacked", "Ausgepackt", onToggle));
+  // … und beide Checkboxen als EINE Gruppe, die nie auseinanderreißt: bei wenig
+  // Platz (schmales Fenster + Foto) wandert höchstens die ganze Gruppe in die
+  // nächste Zeile, nie nur eine einzelne Checkbox.
+  const options = document.createElement("div");
+  options.className = "packing-check-options";
+  options.append(buildCheckOption(item, "packed", "Eingepackt", onToggle));
+  options.append(buildCheckOption(item, "unpacked", "Ausgepackt", onToggle));
+  li.append(options);
 
   return li;
 }

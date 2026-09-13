@@ -27,7 +27,7 @@ Drag & Drop verschieben.
   Funktioniert in BEIDEN Modi, auch über den Nur-Lese-Link. Einzelne Packlisten lassen sich
   im Editor als JSON-Datei exportieren/importieren, um sie als Vorlage für andere Termine
   wiederzuverwenden. Jeder Eintrag kann außerdem ein eigenes Foto bekommen (Kamera-Icon),
-  das auch in der Abhak-Ansicht angezeigt wird.
+  das auch in der Abhak-Ansicht angezeigt wird – ein Klick darauf zeigt es groß.
 - **Freigabe per Link**:
   - *Bearbeitungslink* (mit geheimem Token) – volle Bearbeitung,
   - *Nur-Lese-Link* (Share-ID) – nur Ansehen.

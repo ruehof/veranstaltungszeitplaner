@@ -253,9 +253,15 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   über dieselbe Upload-Route wie Kartenbilder (`POST /api/schedules/:id/uploads`), Vorschau
   als kleines Vorschaubild in der Zeile mit „×“ zum Entfernen. Das Foto erscheint auch in
   der Abhak-Ansicht („Packen“) neben dem Text, damit der Eintrag leichter wiederzuerkennen
-  ist. Wird ein Eintrag mit Foto gelöscht oder sein Foto ersetzt/entfernt, räumt der Server
-  die verwaiste Upload-Datei automatisch auf (sofern kein anderer Eintrag/Karte/Hintergrund
-  sie noch referenziert) – analog zum bestehenden Aufräumen bei Kartenbildern.
+  ist; ein Klick (oder Enter/Leertaste) auf die kleine Vorschau dort öffnet das Foto in
+  Großansicht (eigener, schlichter Lightbox-Dialog ohne Kopf-/Fußzeile – Klick auf das Bild
+  oder den Rand bzw. Escape schließt sie wieder). In der Abhak-Ansicht stehen Foto+Text und
+  die beiden Checkboxen „Eingepackt“/„Ausgepackt“ als zwei getrennte Flex-Gruppen in der
+  Zeile: bei wenig Platz (schmales Fenster + Foto) darf höchstens eine ganze Gruppe in die
+  nächste Zeile umbrechen, nie eine einzelne Checkbox allein (sonst wirkt es „verrutscht“).
+  Wird ein Eintrag mit Foto gelöscht oder sein Foto ersetzt/entfernt, räumt der Server die
+  verwaiste Upload-Datei automatisch auf (sofern kein anderer Eintrag/Karte/Hintergrund sie
+  noch referenziert) – analog zum bestehenden Aufräumen bei Kartenbildern.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von

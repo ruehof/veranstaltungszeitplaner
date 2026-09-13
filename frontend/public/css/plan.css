@@ -681,6 +681,9 @@ body[data-mode="readonly"] .card {
   gap: 10px;
 }
 
+/* Zwei Gruppen (Foto+Text, beide Checkboxen) statt einzelner Flex-Kinder: bei wenig
+   Platz darf höchstens eine ganze Gruppe umbrechen – nie nur eine einzelne Checkbox
+   (das sah vorher wie ein "verrutschter" Haken aus, siehe Kommentar bei .packing-check-options). */
 .packing-check-row {
   display: flex;
   align-items: center;
@@ -694,6 +697,14 @@ body[data-mode="readonly"] .card {
   border-bottom: none;
 }
 
+.packing-check-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
 .packing-check-thumb {
   width: 44px;
   height: 44px;
@@ -701,12 +712,25 @@ body[data-mode="readonly"] .card {
   border-radius: 6px;
   border: 1px solid var(--border);
   flex: 0 0 auto;
+  cursor: zoom-in;
 }
 
 .packing-check-text {
-  flex: 1 1 160px;
+  flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 500;
+}
+
+/* Beide Checkboxen als unzertrennbare Einheit – bricht bei wenig Platz nur als
+   Ganzes in die nächste Zeile um, nie eine einzelne Checkbox allein. */
+.packing-check-options {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
 }
 
 .packing-check-option {
@@ -721,6 +745,27 @@ body[data-mode="readonly"] .card {
 
 .packing-check-option input[type="checkbox"] {
   accent-color: var(--accent);
+}
+
+/* ---- Foto-Großansicht (Klick auf eine Packlisten-Foto-Vorschau) ---- */
+
+.photo-lightbox-dialog {
+  width: auto;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.photo-lightbox-dialog img {
+  display: block;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  border-radius: 8px;
+  cursor: zoom-out;
 }
 
 /* ---- Einstellungen-Dialog: Popup-Haken ---- */
