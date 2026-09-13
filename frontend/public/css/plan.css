@@ -722,6 +722,16 @@ body[data-mode="readonly"] .card {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  cursor: pointer;
+}
+
+/* Abgeschnittener Text lässt sich per Klick/Enter aufklappen (siehe packing.js) –
+   danach umbricht er mehrzeilig, statt weiter mit "…" abgeschnitten zu werden. */
+.packing-check-text.expanded {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Beide Checkboxen als unzertrennbare Einheit – bricht bei wenig Platz nur als

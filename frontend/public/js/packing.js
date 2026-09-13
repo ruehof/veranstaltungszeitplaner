@@ -431,6 +431,18 @@ function buildCheckRow(item, onToggle) {
   const text = document.createElement("span");
   text.className = "packing-check-text";
   text.textContent = item.text;
+  text.title = "Vollständigen Text anzeigen/verbergen";
+  text.tabIndex = 0;
+  text.setAttribute("role", "button");
+  text.setAttribute("aria-label", "Vollständigen Text anzeigen/verbergen");
+  const toggleExpanded = () => text.classList.toggle("expanded");
+  text.addEventListener("click", toggleExpanded);
+  text.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleExpanded();
+    }
+  });
   info.append(text);
   li.append(info);
 

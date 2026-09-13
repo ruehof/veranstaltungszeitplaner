@@ -241,6 +241,9 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   das Abhaken über die normale Karten-PATCH-Route, im Nur-Lese-Modus über die eigene
   shareId-Route `PATCH /api/share/:shareId/cards/:cardId/packing` (siehe API-Tabelle) – so
   können auch Personen ohne Bearbeitungslink Einträge abhaken, aber nichts sonst ändern.
+  Der Eintragstext ist in dieser Ansicht standardmäßig einzeilig mit „…“ abgeschnitten (damit
+  Foto und beide Haken nie in die nächste Zeile rutschen); Klick oder Enter/Leertaste auf den
+  Text klappt ihn vollständig, mehrzeilig auf (nochmaliger Klick klappt wieder ein).
   Der Editor-Dialog hat zusätzlich „Übernehmen von…“: ein Menü mit allen ANDEREN Terminen
   desselben Plans, die eine nicht-leere Packliste haben (der gerade bearbeitete Termin selbst
   ist ausgeschlossen); Auswahl fügt deren Einträge (inkl. Foto-Referenz) der aktuellen Liste
