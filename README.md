@@ -24,8 +24,9 @@ Drag & Drop verschieben.
   hinzufügen, umbenennen, löschen, per Drag & Drop sortieren). Hat eine Karte eine Packliste,
   zeigt sie einen „Packen“-Button, der eine Abhak-Ansicht öffnet – dort lässt sich pro Eintrag
   unabhängig „Eingepackt“ und „Ausgepackt“ (nach dem Termin wieder zurückgebracht) abhaken.
-  Funktioniert in BEIDEN Modi, auch über den Nur-Lese-Link. Einzelne Packlisten lassen sich
-  im Editor als JSON-Datei exportieren/importieren, um sie als Vorlage für andere Termine
+  Funktioniert in BEIDEN Modi, auch über den Nur-Lese-Link. Packlisten lassen sich per
+  „Übernehmen von…“ von einem anderen Termin desselben Plans duplizieren und dann anpassen,
+  oder im Editor als JSON-Datei exportieren/importieren, um sie als Vorlage für andere Termine
   wiederzuverwenden. Jeder Eintrag kann außerdem ein eigenes Foto bekommen (Kamera-Icon),
   das auch in der Abhak-Ansicht angezeigt wird – ein Klick darauf zeigt es groß.
 - **Freigabe per Link**:

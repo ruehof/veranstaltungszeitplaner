@@ -287,6 +287,12 @@ function setupDialog() {
   initCardDialog({
     getSchedule: () => schedule,
     uploadImage: (file) => api.uploadImage(schedule.id, file),
+    // Andere Termine desselben Plans mit nicht-leerer Packliste, für "Übernehmen von…"
+    // im Packlisten-Editor (excludeCardId: die gerade bearbeitete Karte ausschließen).
+    getPackingCandidates: (excludeCardId) =>
+      cards
+        .filter((c) => c.id !== excludeCardId && c.packingList && c.packingList.length > 0)
+        .map((c) => ({ title: c.title, packingList: c.packingList })),
     onSubmit: async (payload, existingCard) => {
       if (existingCard) {
         const updated = await api.patchCard(schedule.id, existingCard.id, payload);

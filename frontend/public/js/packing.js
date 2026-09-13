@@ -3,6 +3,7 @@
 
 import { icons } from "./icons.js";
 import { showToast } from "./toast.js";
+import { openMenu } from "./menu.js";
 
 /** Zufällige, rein clientseitige id für neue Einträge (der Server vergibt beim
  *  Speichern ohnehin eine eigene id – diese dient nur als React-freier DOM-Key). */
@@ -19,11 +20,12 @@ const MAX_PACKING_ITEM_TEXT = 200;
 // ---- Editor (nur Bearbeitungsmodus, Teil des Termin-Dialogs) ------------------------
 
 let editorDlg, editorHeading, editorList, editorAddBtn, editorDoneBtn, editorCloseBtn;
-let editorImportBtn, editorImportFile, editorExportBtn;
+let editorDuplicateBtn, editorImportBtn, editorImportFile, editorExportBtn;
 let editorItems = [];
 let editorOnChange = null;
 let editorFileBase = "packliste";
 let editorUploadImage = null;
+let editorGetDuplicateCandidates = null;
 let dragSrcId = null;
 
 /**
@@ -38,6 +40,7 @@ export function initPackingEditor(options) {
   editorAddBtn = document.getElementById("packing-editor-add");
   editorDoneBtn = document.getElementById("packing-editor-done");
   editorCloseBtn = document.getElementById("packing-editor-close");
+  editorDuplicateBtn = document.getElementById("packing-editor-duplicate");
   editorImportBtn = document.getElementById("packing-editor-import");
   editorImportFile = document.getElementById("packing-editor-import-file");
   editorExportBtn = document.getElementById("packing-editor-export");
@@ -45,6 +48,7 @@ export function initPackingEditor(options) {
   editorAddBtn.addEventListener("click", addItem);
   editorDoneBtn.addEventListener("click", () => editorDlg.close());
   editorCloseBtn.addEventListener("click", () => editorDlg.close());
+  editorDuplicateBtn.addEventListener("click", onDuplicateClick);
   editorImportBtn.addEventListener("click", () => editorImportFile.click());
   editorImportFile.addEventListener("change", onImportFile);
   editorExportBtn.addEventListener("click", exportList);
@@ -52,17 +56,36 @@ export function initPackingEditor(options) {
 
 /**
  * Packlisten-Editor öffnen.
- * @param {Array} list         bisherige Einträge ({id, text, packed, unpacked})
+ * @param {Array} list         bisherige Einträge ({id, text, packed, unpacked, imageUrl})
  * @param {function} onChange  wird bei jeder Änderung mit der aktuellen Liste aufgerufen
  * @param {string} [cardTitle] Termin-Titel, für Dialog-Überschrift und Export-Dateiname
+ * @param {function} [getDuplicateCandidates] () => Array<{title, packingList}> – andere
+ *   Termine desselben Plans mit nicht-leerer Packliste, für "Übernehmen von…"
  */
-export function openPackingEditor(list, onChange, cardTitle) {
+export function openPackingEditor(list, onChange, cardTitle, getDuplicateCandidates) {
   editorItems = (list || []).map((item) => ({ ...item, imageUrl: item.imageUrl ?? null }));
   editorOnChange = onChange;
+  editorGetDuplicateCandidates = getDuplicateCandidates || null;
   editorHeading.textContent = cardTitle ? `Packliste – ${cardTitle}` : "Packliste";
   editorFileBase = (cardTitle || "").replace(/[\\/:*?"<>|]+/g, "").trim() || "packliste";
   renderEditorList();
   editorDlg.showModal();
+}
+
+/** "Übernehmen von…": Menü mit anderen Terminen dieses Plans, die eine Packliste haben. */
+function onDuplicateClick() {
+  const candidates = (editorGetDuplicateCandidates ? editorGetDuplicateCandidates() : []) || [];
+  if (candidates.length === 0) {
+    showToast("Keine anderen Packlisten in diesem Plan vorhanden.", "info");
+    return;
+  }
+  openMenu(
+    editorDuplicateBtn,
+    candidates.map((candidate) => ({
+      label: candidate.title,
+      onClick: () => appendItems(candidate.packingList, "übernommen"),
+    }))
+  );
 }
 
 /** Aktuelle Liste als JSON-Datei herunterladen (Vorlage zur Wiederverwendung). */
@@ -98,10 +121,16 @@ async function onImportFile() {
     showToast("Das ist keine gültige Packlisten-Datei (JSON-Export erwartet).");
     return;
   }
+  appendItems(data.items, "importiert");
+}
 
+/** Einträge (aus einer Datei oder einer anderen Karte) an die aktuelle Liste anhängen –
+ *  nichts wird überschrieben, übernommene Einträge starten immer unangehakt. Fremde
+ *  Bild-URLs werden übernommen (dieselbe Upload-Datei, gültig auf demselben Server). */
+function appendItems(rawItems, verb) {
   let added = 0;
   let skipped = 0;
-  for (const raw of data.items) {
+  for (const raw of rawItems || []) {
     if (editorItems.length >= MAX_PACKING_ITEMS) {
       skipped++;
       continue;
@@ -111,17 +140,23 @@ async function onImportFile() {
       skipped++;
       continue;
     }
-    editorItems.push({ id: makeLocalId(), text, packed: false, unpacked: false });
+    editorItems.push({
+      id: makeLocalId(),
+      text,
+      packed: false,
+      unpacked: false,
+      imageUrl: raw && typeof raw.imageUrl === "string" ? raw.imageUrl : null,
+    });
     added++;
   }
   renderEditorList();
 
   if (added === 0) {
-    showToast("Keine gültigen Einträge in der Datei gefunden.");
+    showToast(`Keine gültigen Einträge zum Übernehmen gefunden.`);
   } else if (skipped > 0) {
-    showToast(`${added} Einträge importiert, ${skipped} übersprungen.`, "info");
+    showToast(`${added} Einträge ${verb}, ${skipped} übersprungen.`, "info");
   } else {
-    showToast(`${added} Einträge importiert.`, "success");
+    showToast(`${added} Einträge ${verb}.`, "success");
   }
 }
 

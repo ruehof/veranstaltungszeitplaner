@@ -241,7 +241,13 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   das Abhaken über die normale Karten-PATCH-Route, im Nur-Lese-Modus über die eigene
   shareId-Route `PATCH /api/share/:shareId/cards/:cardId/packing` (siehe API-Tabelle) – so
   können auch Personen ohne Bearbeitungslink Einträge abhaken, aber nichts sonst ändern.
-  Der Editor-Dialog hat zusätzlich „Exportieren“/„Importieren…“ für die EINZELNE Packliste
+  Der Editor-Dialog hat zusätzlich „Übernehmen von…“: ein Menü mit allen ANDEREN Terminen
+  desselben Plans, die eine nicht-leere Packliste haben (der gerade bearbeitete Termin selbst
+  ist ausgeschlossen); Auswahl fügt deren Einträge (inkl. Foto-Referenz) der aktuellen Liste
+  HINZU, immer unangehakt – so lässt sich eine Packliste leicht duplizieren und dann per
+  Löschen/Ergänzen anpassen, ohne Datei-Export/Import. Gibt es keine anderen Packlisten im
+  Plan, zeigt ein Hinweis-Toast das an, statt ein leeres Menü zu öffnen.
+  Außerdem „Exportieren“/„Importieren…“ für die EINZELNE Packliste
   dieser Karte (rein clientseitig, kein Server-Endpunkt nötig): Export lädt
   `{format: "veranstaltungszeitplaner-packliste", version: 1, items: [{text}]}` als
   JSON-Datei herunter (Dateiname aus dem Termin-Titel, ohne `packed`/`unpacked` – reine

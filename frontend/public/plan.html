@@ -172,14 +172,16 @@
       <ul id="packing-editor-list" class="packing-editor-list"></ul>
       <div class="packing-editor-toolbar">
         <button type="button" id="packing-editor-add" class="btn btn-ghost">+ Eintrag</button>
+        <button type="button" id="packing-editor-duplicate" class="btn btn-ghost">Übernehmen von…</button>
         <span class="packing-editor-toolbar-spacer"></span>
         <input type="file" id="packing-editor-import-file" accept="application/json" hidden>
         <button type="button" id="packing-editor-import" class="btn btn-ghost">Importieren…</button>
         <button type="button" id="packing-editor-export" class="btn btn-ghost">Exportieren</button>
       </div>
-      <p class="hint">Export/Import als JSON-Datei – so lässt sich eine Packliste als Vorlage
-        für andere Termine wiederverwenden. Beim Import werden die Einträge zur aktuellen
-        Liste hinzugefügt (nichts wird überschrieben), immer unangehakt.</p>
+      <p class="hint">„Übernehmen von…“ kopiert die Einträge der Packliste eines anderen Termins
+        aus diesem Plan hierher (nichts wird überschrieben, immer unangehakt) – so lassen sich
+        Packlisten leicht duplizieren und dann per Löschen/Ergänzen anpassen. Export/Import als
+        JSON-Datei funktioniert genauso, aber auch plan- und geräteübergreifend.</p>
     </div>
     <footer class="dialog-actions">
       <button type="button" id="packing-editor-done" class="btn btn-primary">Fertig</button>

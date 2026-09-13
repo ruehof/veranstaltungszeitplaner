@@ -11,7 +11,7 @@ import {
 import { showToast } from "./toast.js";
 import { openPackingEditor } from "./packing.js";
 
-let config = null; // { getSchedule, uploadImage(file), onSubmit(payload, existingCard) }
+let config = null; // { getSchedule, uploadImage(file), onSubmit(payload, existingCard), getPackingCandidates(excludeCardId) }
 let dlg, form, fields;
 let currentCard = null; // beim Bearbeiten die Original-Karte, sonst null
 let currentImageUrl = null;
@@ -64,7 +64,8 @@ export function initCardDialog(options) {
         currentPackingList = list;
         updatePackingCount();
       },
-      fields.title.value.trim()
+      fields.title.value.trim(),
+      () => config.getPackingCandidates(currentCard ? currentCard.id : null)
     );
   });
 
