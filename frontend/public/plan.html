@@ -163,14 +163,23 @@
   <!-- Dialog: Packlisten-Editor (Teil des Termin-Dialogs, nur Bearbeitungsmodus) -->
   <dialog id="packing-editor-dialog" class="dialog">
     <header class="dialog-head">
-      <h2>Packliste</h2>
+      <h2 id="packing-editor-heading">Packliste</h2>
       <button type="button" id="packing-editor-close" class="icon-btn" title="Schließen" aria-label="Schließen">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </header>
     <div class="dialog-body">
       <ul id="packing-editor-list" class="packing-editor-list"></ul>
-      <button type="button" id="packing-editor-add" class="btn btn-ghost">+ Eintrag</button>
+      <div class="packing-editor-toolbar">
+        <button type="button" id="packing-editor-add" class="btn btn-ghost">+ Eintrag</button>
+        <span class="packing-editor-toolbar-spacer"></span>
+        <input type="file" id="packing-editor-import-file" accept="application/json" hidden>
+        <button type="button" id="packing-editor-import" class="btn btn-ghost">Importieren…</button>
+        <button type="button" id="packing-editor-export" class="btn btn-ghost">Exportieren</button>
+      </div>
+      <p class="hint">Export/Import als JSON-Datei – so lässt sich eine Packliste als Vorlage
+        für andere Termine wiederverwenden. Beim Import werden die Einträge zur aktuellen
+        Liste hinzugefügt (nichts wird überschrieben), immer unangehakt.</p>
     </div>
     <footer class="dialog-actions">
       <button type="button" id="packing-editor-done" class="btn btn-primary">Fertig</button>

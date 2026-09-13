@@ -10,36 +10,114 @@ function makeLocalId() {
   return "p" + Math.random().toString(36).slice(2, 10);
 }
 
+// Obergrenze für Einträge – muss zum Server-Limit in backend/src/lib/validate.js
+// (MAX_PACKING_ITEMS) passen, damit ein Import nicht erst beim Speichern mit
+// einem 400-Fehler scheitert.
+const MAX_PACKING_ITEMS = 100;
+const MAX_PACKING_ITEM_TEXT = 200;
+
 // ---- Editor (nur Bearbeitungsmodus, Teil des Termin-Dialogs) ------------------------
 
-let editorDlg, editorList, editorAddBtn, editorDoneBtn, editorCloseBtn;
+let editorDlg, editorHeading, editorList, editorAddBtn, editorDoneBtn, editorCloseBtn;
+let editorImportBtn, editorImportFile, editorExportBtn;
 let editorItems = [];
 let editorOnChange = null;
+let editorFileBase = "packliste";
 let dragSrcId = null;
 
 /** Editor-Dialog einmalig verdrahten. */
 export function initPackingEditor() {
   editorDlg = document.getElementById("packing-editor-dialog");
+  editorHeading = document.getElementById("packing-editor-heading");
   editorList = document.getElementById("packing-editor-list");
   editorAddBtn = document.getElementById("packing-editor-add");
   editorDoneBtn = document.getElementById("packing-editor-done");
   editorCloseBtn = document.getElementById("packing-editor-close");
+  editorImportBtn = document.getElementById("packing-editor-import");
+  editorImportFile = document.getElementById("packing-editor-import-file");
+  editorExportBtn = document.getElementById("packing-editor-export");
 
   editorAddBtn.addEventListener("click", addItem);
   editorDoneBtn.addEventListener("click", () => editorDlg.close());
   editorCloseBtn.addEventListener("click", () => editorDlg.close());
+  editorImportBtn.addEventListener("click", () => editorImportFile.click());
+  editorImportFile.addEventListener("change", onImportFile);
+  editorExportBtn.addEventListener("click", exportList);
 }
 
 /**
  * Packlisten-Editor öffnen.
- * @param {Array} list        bisherige Einträge ({id, text, packed, unpacked})
- * @param {function} onChange wird bei jeder Änderung mit der aktuellen Liste aufgerufen
+ * @param {Array} list         bisherige Einträge ({id, text, packed, unpacked})
+ * @param {function} onChange  wird bei jeder Änderung mit der aktuellen Liste aufgerufen
+ * @param {string} [cardTitle] Termin-Titel, für Dialog-Überschrift und Export-Dateiname
  */
-export function openPackingEditor(list, onChange) {
+export function openPackingEditor(list, onChange, cardTitle) {
   editorItems = (list || []).map((item) => ({ ...item }));
   editorOnChange = onChange;
+  editorHeading.textContent = cardTitle ? `Packliste – ${cardTitle}` : "Packliste";
+  editorFileBase = (cardTitle || "").replace(/[\\/:*?"<>|]+/g, "").trim() || "packliste";
   renderEditorList();
   editorDlg.showModal();
+}
+
+/** Aktuelle Liste als JSON-Datei herunterladen (Vorlage zur Wiederverwendung). */
+function exportList() {
+  const data = {
+    format: "veranstaltungszeitplaner-packliste",
+    version: 1,
+    items: editorItems.map((item) => ({ text: item.text })),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = editorFileBase + ".json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/** Packliste aus einer zuvor exportierten JSON-Datei zur aktuellen Liste hinzufügen
+ *  (nichts wird überschrieben, importierte Einträge starten immer unangehakt). */
+async function onImportFile() {
+  const file = editorImportFile.files && editorImportFile.files[0];
+  editorImportFile.value = "";
+  if (!file) return;
+
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    showToast("Das ist keine gültige JSON-Datei.");
+    return;
+  }
+  if (!data || !Array.isArray(data.items)) {
+    showToast("Das ist keine gültige Packlisten-Datei (JSON-Export erwartet).");
+    return;
+  }
+
+  let added = 0;
+  let skipped = 0;
+  for (const raw of data.items) {
+    if (editorItems.length >= MAX_PACKING_ITEMS) {
+      skipped++;
+      continue;
+    }
+    const text = raw && typeof raw.text === "string" ? raw.text.trim() : "";
+    if (!text || text.length > MAX_PACKING_ITEM_TEXT) {
+      skipped++;
+      continue;
+    }
+    editorItems.push({ id: makeLocalId(), text, packed: false, unpacked: false });
+    added++;
+  }
+  renderEditorList();
+
+  if (added === 0) {
+    showToast("Keine gültigen Einträge in der Datei gefunden.");
+  } else if (skipped > 0) {
+    showToast(`${added} Einträge importiert, ${skipped} übersprungen.`, "info");
+  } else {
+    showToast(`${added} Einträge importiert.`, "success");
+  }
 }
 
 function emitChange() {
@@ -57,6 +135,7 @@ function addItem() {
 function renderEditorList() {
   editorList.innerHTML = "";
   editorItems.forEach((item) => editorList.append(buildEditorRow(item)));
+  editorExportBtn.disabled = editorItems.length === 0;
   emitChange();
 }
 

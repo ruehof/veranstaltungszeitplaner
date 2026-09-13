@@ -58,10 +58,14 @@ export function initCardDialog(options) {
     fields.transparencyValue.textContent = fields.transparency.value;
   });
   fields.packingBtn.addEventListener("click", () => {
-    openPackingEditor(currentPackingList, (list) => {
-      currentPackingList = list;
-      updatePackingCount();
-    });
+    openPackingEditor(
+      currentPackingList,
+      (list) => {
+        currentPackingList = list;
+        updatePackingCount();
+      },
+      fields.title.value.trim()
+    );
   });
 
   form.addEventListener("submit", onSubmit);

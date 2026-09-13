@@ -588,6 +588,17 @@ body[data-mode="readonly"] .card {
   background: #fff;
 }
 
+.packing-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.packing-editor-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
 .packing-editor-row.dragging {
   opacity: 0.4;
 }

@@ -235,6 +235,14 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   das Abhaken über die normale Karten-PATCH-Route, im Nur-Lese-Modus über die eigene
   shareId-Route `PATCH /api/share/:shareId/cards/:cardId/packing` (siehe API-Tabelle) – so
   können auch Personen ohne Bearbeitungslink Einträge abhaken, aber nichts sonst ändern.
+  Der Editor-Dialog hat zusätzlich „Exportieren“/„Importieren…“ für die EINZELNE Packliste
+  dieser Karte (rein clientseitig, kein Server-Endpunkt nötig): Export lädt
+  `{format: "veranstaltungszeitplaner-packliste", version: 1, items: [{text}]}` als
+  JSON-Datei herunter (Dateiname aus dem Termin-Titel, ohne `packed`/`unpacked` – reine
+  Text-Vorlage). Import fügt die Einträge einer solchen Datei der aktuellen Liste HINZU
+  (nichts wird überschrieben) und startet sie immer unangehakt, auch wenn die Datei
+  abweichende Werte enthält. So lässt sich eine Packliste als Vorlage für andere Termine
+  wiederverwenden, ohne den ganzen Plan exportieren zu müssen.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von
