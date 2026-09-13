@@ -7,7 +7,8 @@ import { getPxPerMinute } from "./grid.js";
 /**
  * Kartenelement erzeugen und absolut positionieren.
  * @param {object} card  Card-Datensatz gemäß SPEC.md
- * @param {object} opts  { schedule, readOnly, onToggleCollapse(card), onMenu(card, anchor), onMaximize(card) }
+ * @param {object} opts  { schedule, readOnly, onToggleCollapse(card), onMenu(card, anchor),
+ *                         onMaximize(card), onPacking(card) }
  */
 export function createCardElement(card, opts) {
   const { schedule, readOnly } = opts;
@@ -89,6 +90,22 @@ export function createCardElement(card, opts) {
     opts.onMaximize(card);
   });
   actions.append(maximizeBtn);
+
+  // Packen: Packliste abhaken (eingepackt/ausgepackt) – in beiden Modi verfügbar,
+  // aber nur sichtbar, wenn die Karte überhaupt eine Packliste hat.
+  if (card.packingList && card.packingList.length > 0) {
+    const packedCount = card.packingList.filter((item) => item.packed).length;
+    const packBtn = document.createElement("button");
+    packBtn.type = "button";
+    packBtn.className = "icon-btn card-packing-btn";
+    packBtn.title = `Packliste (${packedCount}/${card.packingList.length} eingepackt)`;
+    packBtn.innerHTML = icons.bag;
+    packBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      opts.onPacking(card);
+    });
+    actions.append(packBtn);
+  }
 
   // Dreipunkt-Menü (nur im Bearbeitungsmodus)
   if (!readOnly) {

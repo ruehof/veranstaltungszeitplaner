@@ -20,6 +20,11 @@ Drag & Drop verschieben.
 - **Dreipunkt-Menü** pro Karte: Duplizieren, Stummschalten/Aktivieren
   (stummgeschaltete Karten werden per Graustich-Filter erkennbar gemacht, unabhängig
   von der Transparenz-Einstellung), Löschen (mit Bestätigung), Bearbeiten.
+- **Packliste pro Termin**: im Termin-Dialog per „Packliste bearbeiten…“ anlegen (Einträge
+  hinzufügen, umbenennen, löschen, per Drag & Drop sortieren). Hat eine Karte eine Packliste,
+  zeigt sie einen „Packen“-Button, der eine Abhak-Ansicht öffnet – dort lässt sich pro Eintrag
+  unabhängig „Eingepackt“ und „Ausgepackt“ (nach dem Termin wieder zurückgebracht) abhaken.
+  Funktioniert in BEIDEN Modi, auch über den Nur-Lese-Link.
 - **Freigabe per Link**:
   - *Bearbeitungslink* (mit geheimem Token) – volle Bearbeitung,
   - *Nur-Lese-Link* (Share-ID) – nur Ansehen.

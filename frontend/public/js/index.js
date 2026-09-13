@@ -84,6 +84,15 @@ importFile.addEventListener("change", async () => {
           bgColor: typeof card.bgColor === "string" ? card.bgColor : null,
           textColor: typeof card.textColor === "string" ? card.textColor : null,
           transparency: typeof card.transparency === "number" ? card.transparency : null,
+          packingList: Array.isArray(card.packingList)
+            ? card.packingList
+                .filter((item) => item && typeof item.text === "string" && item.text.trim())
+                .map((item) => ({
+                  text: item.text.trim(),
+                  packed: Boolean(item.packed),
+                  unpacked: Boolean(item.unpacked),
+                }))
+            : [],
           day: card.day,
           startMinutes: card.startMinutes,
           durationMinutes: card.durationMinutes,

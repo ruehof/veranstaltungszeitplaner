@@ -1,4 +1,5 @@
 import { HttpError } from "./httpError.js";
+import { randomId } from "./ids.js";
 
 // Standard-Einstellungen laut SPEC.md
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -17,6 +18,10 @@ export const MAX_POPUP_TEXT = 5000;
 
 // Obergrenze für die Anzahl Tagesspalten (z. B. Datumsbereich von–bis)
 export const MAX_DAYS = 31;
+
+// Obergrenzen für die Packliste einer Karte
+export const MAX_PACKING_ITEMS = 100;
+export const MAX_PACKING_ITEM_TEXT = 200;
 
 function isPlainObject(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -126,6 +131,36 @@ export function validateCardPosition(settings, { day, startMinutes, durationMinu
   }
 }
 
+// Prüft und normalisiert die Packliste einer Karte. Jeder Eintrag erhält bei
+// Bedarf eine neue id (z. B. beim Anlegen oder beim JSON-Import ohne id).
+function sanitizePackingList(value) {
+  if (!Array.isArray(value)) {
+    throw new HttpError(400, "packingList muss eine Liste sein.");
+  }
+  if (value.length > MAX_PACKING_ITEMS) {
+    throw new HttpError(400, `packingList darf höchstens ${MAX_PACKING_ITEMS} Einträge enthalten.`);
+  }
+  return value.map((item) => {
+    if (!isPlainObject(item)) {
+      throw new HttpError(400, "Jeder Packlisten-Eintrag muss ein Objekt sein.");
+    }
+    if (typeof item.text !== "string" || item.text.trim() === "") {
+      throw new HttpError(400, "Jeder Packlisten-Eintrag benötigt einen nicht-leeren Text.");
+    }
+    const text = item.text.trim();
+    if (text.length > MAX_PACKING_ITEM_TEXT) {
+      throw new HttpError(400, `Ein Packlisten-Eintrag darf höchstens ${MAX_PACKING_ITEM_TEXT} Zeichen lang sein.`);
+    }
+    const id = typeof item.id === "string" && item.id.trim() !== "" ? item.id.trim() : randomId(10);
+    return {
+      id,
+      text,
+      packed: item.packed === true,
+      unpacked: item.unpacked === true,
+    };
+  });
+}
+
 // Prüft und übernimmt die Kartenfelder aus dem Request-Body.
 // partial = true: nur übergebene Felder prüfen (PATCH), sonst Pflichtfelder + Defaults (POST).
 // Die Feinprüfung der Positionsfelder übernimmt validateCardPosition().
@@ -204,6 +239,12 @@ export function sanitizeCardInput(body, { partial = false } = {}) {
     out.transparency = body.transparency;
   } else if (!partial) {
     out.transparency = null;
+  }
+
+  if (body.packingList !== undefined) {
+    out.packingList = sanitizePackingList(body.packingList);
+  } else if (!partial) {
+    out.packingList = [];
   }
 
   for (const flag of ["collapsed", "muted"]) {

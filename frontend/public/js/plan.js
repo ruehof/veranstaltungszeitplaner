@@ -7,6 +7,7 @@ import { createCardElement } from "./card.js";
 import { initDragDrop } from "./dragdrop.js";
 import { initCardDialog, openCardDialog } from "./dialog.js";
 import { initCardViewDialog, openCardView } from "./cardview.js";
+import { initPackingEditor, initPackingCheck, openPackingCheck } from "./packing.js";
 import { createScheduleSettingsForm } from "./scheduleform.js";
 import { openMenu } from "./menu.js";
 import { showToast } from "./toast.js";
@@ -92,6 +93,7 @@ function renderGridAndCards() {
       onToggleCollapse: toggleCollapse,
       onMenu: openCardMenu,
       onMaximize: openCardView,
+      onPacking: openPackingChecklist,
     });
     col.append(el);
     // Eingeklappt: Vorschau bleibt bewusst in der Slot-Höhe (an der End-Zeit
@@ -214,6 +216,21 @@ async function deleteCard(card) {
   } catch (err) {
     showToast(err.message);
   }
+}
+
+/** Packliste einer Karte abhaken ("Packen"): Nur-Lese-Link nutzt die shareId-Route
+ *  (nur packed/unpacked, kein editToken nötig), der Bearbeitungsmodus die normale
+ *  Karten-PATCH-Route (voller Zugriff, ohnehin bereits vorhanden). */
+function openPackingChecklist(card) {
+  openPackingCheck(card, async (itemId, patch) => {
+    if (readOnly) {
+      const result = await api.updatePackingStatus(schedule.shareId, card.id, [{ id: itemId, ...patch }]);
+      card.packingList = result.packingList;
+    } else {
+      const updated = await api.patchCard(schedule.id, card.id, { packingList: card.packingList });
+      Object.assign(card, updated);
+    }
+  });
 }
 
 /** Dreipunkt-Menü der Karte öffnen. */
@@ -538,6 +555,11 @@ function exportPlan() {
       bgColor: c.bgColor ?? null,
       textColor: c.textColor ?? null,
       transparency: c.transparency ?? null,
+      packingList: (c.packingList || []).map((item) => ({
+        text: item.text,
+        packed: Boolean(item.packed),
+        unpacked: Boolean(item.unpacked),
+      })),
       day: c.day,
       startMinutes: c.startMinutes,
       durationMinutes: c.durationMinutes,
@@ -640,6 +662,8 @@ initDragDrop(els.gridContainer, {
 });
 setupCellClick();
 initCardViewDialog(); // Vollansicht: in beiden Modi verfügbar, unabhängig von readOnly
+initPackingEditor(); // Packlisten-Editor: Teil des Termin-Dialogs, wird nur im Bearbeitungsmodus geöffnet
+initPackingCheck(); // Packliste abhaken ("Packen"): in beiden Modi verfügbar
 load();
 
 // Bei Fenstergröße-/Bildschirmänderung die Stundenhöhe neu an die verfügbare

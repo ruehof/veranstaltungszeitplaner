@@ -82,6 +82,14 @@
           <input type="range" id="cd-transparency" min="0" max="100" step="1" value="20">
         </label>
 
+        <div class="field">
+          <span class="field-label">Packliste</span>
+          <div class="upload-row">
+            <button type="button" id="cd-packing-btn" class="btn">Packliste bearbeiten…</button>
+            <span id="cd-packing-count" class="hint">Keine Einträge</span>
+          </div>
+        </div>
+
         <div class="field-row">
           <label class="field">
             <span class="field-label">Tag</span>
@@ -150,6 +158,39 @@
         <button type="submit" id="sd-save" class="btn btn-primary">Speichern</button>
       </footer>
     </form>
+  </dialog>
+
+  <!-- Dialog: Packlisten-Editor (Teil des Termin-Dialogs, nur Bearbeitungsmodus) -->
+  <dialog id="packing-editor-dialog" class="dialog">
+    <header class="dialog-head">
+      <h2>Packliste</h2>
+      <button type="button" id="packing-editor-close" class="icon-btn" title="Schließen" aria-label="Schließen">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="dialog-body">
+      <ul id="packing-editor-list" class="packing-editor-list"></ul>
+      <button type="button" id="packing-editor-add" class="btn btn-ghost">+ Eintrag</button>
+    </div>
+    <footer class="dialog-actions">
+      <button type="button" id="packing-editor-done" class="btn btn-primary">Fertig</button>
+    </footer>
+  </dialog>
+
+  <!-- Dialog: Packliste abhaken ("Packen" – eingepackt/ausgepackt, in beiden Modi) -->
+  <dialog id="packing-check-dialog" class="dialog">
+    <header class="dialog-head">
+      <h2 id="packing-check-heading">Packliste</h2>
+      <button type="button" id="packing-check-close" class="icon-btn" title="Schließen" aria-label="Schließen">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+    <div class="dialog-body">
+      <ul id="packing-check-list" class="packing-check-list"></ul>
+    </div>
+    <footer class="dialog-actions">
+      <button type="button" id="packing-check-done" class="btn btn-primary">Fertig</button>
+    </footer>
   </dialog>
 
   <!-- Dialog: Vollansicht einer Terminkarte (nur Anzeigen, Maximieren-Symbol) -->

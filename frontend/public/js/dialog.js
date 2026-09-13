@@ -9,11 +9,13 @@ import {
   DEFAULT_CARD_TRANSPARENCY,
 } from "./util.js";
 import { showToast } from "./toast.js";
+import { openPackingEditor } from "./packing.js";
 
 let config = null; // { getSchedule, uploadImage(file), onSubmit(payload, existingCard) }
 let dlg, form, fields;
 let currentCard = null; // beim Bearbeiten die Original-Karte, sonst null
 let currentImageUrl = null;
+let currentPackingList = [];
 let uploading = false;
 
 /** Dialog initialisieren (einmalig nach DOM-Aufbau aufrufen). */
@@ -34,6 +36,8 @@ export function initCardDialog(options) {
     textColors: document.getElementById("cd-textcolors"),
     transparency: document.getElementById("cd-transparency"),
     transparencyValue: document.getElementById("cd-transparency-value"),
+    packingBtn: document.getElementById("cd-packing-btn"),
+    packingCount: document.getElementById("cd-packing-count"),
     day: document.getElementById("cd-day"),
     start: document.getElementById("cd-start"),
     duration: document.getElementById("cd-duration"),
@@ -52,6 +56,12 @@ export function initCardDialog(options) {
   fields.start.addEventListener("change", () => rebuildDurationOptions());
   fields.transparency.addEventListener("input", () => {
     fields.transparencyValue.textContent = fields.transparency.value;
+  });
+  fields.packingBtn.addEventListener("click", () => {
+    openPackingEditor(currentPackingList, (list) => {
+      currentPackingList = list;
+      updatePackingCount();
+    });
   });
 
   form.addEventListener("submit", onSubmit);
@@ -205,6 +215,8 @@ export function openCardDialog(card = null, defaults = {}) {
     selectSwatch(fields.bgColors, "cd-bgcolor", card.bgColor || "");
     selectSwatch(fields.textColors, "cd-textcolor", card.textColor || "");
     setTransparency(card.transparency ?? DEFAULT_CARD_TRANSPARENCY);
+    currentPackingList = (card.packingList || []).map((item) => ({ ...item }));
+    updatePackingCount();
   } else {
     fields.heading.textContent = "Neuer Termin";
     fields.save.textContent = "Anlegen";
@@ -219,10 +231,19 @@ export function openCardDialog(card = null, defaults = {}) {
     selectSwatch(fields.bgColors, "cd-bgcolor", "");
     selectSwatch(fields.textColors, "cd-textcolor", "");
     setTransparency(DEFAULT_CARD_TRANSPARENCY);
+    currentPackingList = [];
+    updatePackingCount();
   }
 
   dlg.showModal();
   fields.title.focus();
+}
+
+/** Anzahl Packlisten-Einträge unter dem Button anzeigen. */
+function updatePackingCount() {
+  const n = currentPackingList.length;
+  fields.packingCount.textContent =
+    n === 0 ? "Keine Einträge" : n === 1 ? "1 Eintrag" : `${n} Einträge`;
 }
 
 /** Transparenz-Regler + Live-Anzeige auf einen Wert (0–100) setzen. */
@@ -264,6 +285,7 @@ async function onSubmit(event) {
     bgColor: bgInput && bgInput.value ? bgInput.value : null,
     textColor: textInput && textInput.value ? textInput.value : null,
     transparency: parseInt(fields.transparency.value, 10),
+    packingList: currentPackingList,
     day: parseInt(fields.day.value, 10),
     startMinutes: parseInt(fields.start.value, 10),
     durationMinutes: parseInt(fields.duration.value, 10),

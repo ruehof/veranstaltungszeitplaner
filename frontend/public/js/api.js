@@ -94,6 +94,13 @@ export const api = {
       method: "DELETE",
     }),
 
+  /** Packliste abhaken über den Nur-Lese-Freigabelink (ohne editToken). Antwort: {packingList}. */
+  updatePackingStatus: (shareId, cardId, items) =>
+    request(`api/share/${encodeURIComponent(shareId)}/cards/${encodeURIComponent(cardId)}/packing`, {
+      method: "PATCH",
+      body: { items },
+    }),
+
   /** Bild hochladen (multipart/form-data, Feld "image"). Antwort: {url}. */
   uploadImage: (scheduleId, file) => {
     const formData = new FormData();

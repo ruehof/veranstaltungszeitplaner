@@ -94,6 +94,9 @@ Der Express-Server liefert `../frontend/public` als statische Dateien aus (Pfad 
   "bgColor": "string | null (CSS-Hintergrundfarbe des Kartenkörpers, null = Weiß)",
   "textColor": "string | null (CSS-Textfarbe der Karte, null = Standard dunkel)",
   "transparency": "number | null (0-100, 0 = voll deckend, 100 = komplett durchsichtig; null = Standard 20)",
+  "packingList": [
+    { "id": "string (10 Zeichen, zufällig)", "text": "string", "packed": false, "unpacked": false }
+  ],
   "collapsed": false,
   "muted": false,
   "createdAt": "ISO-8601",
@@ -117,6 +120,13 @@ Regeln:
 - `durationMinutes`: Vielfaches von 15, min. 15. Ende darf `endHour*60` nicht überschreiten.
 - Server validiert diese Regeln und rundet nicht selbst – ungültige Werte ⇒ HTTP 400.
 - `muted: true` ⇒ Karte wird im Frontend ausgegraut/halbtransparent dargestellt.
+- `packingList`: Packliste der Karte (leer = `[]`). `packed`/`unpacked` sind unabhängig
+  voneinander abhakbare Zustände ("eingepackt" vor dem Termin, "ausgepackt"/zurückgebracht
+  nach dem Termin). Volle Bearbeitung (Text, Reihenfolge, Einträge hinzufügen/löschen) nur
+  über die normale, tokengeschützte Karten-PATCH-Route. Für `packed`/`unpacked` gibt es
+  zusätzlich eine eigene, NICHT tokengeschützte Route über den Nur-Lese-Freigabelink (siehe
+  API-Tabelle) – wer den Freigabelink kennt, darf damit Einträge abhaken, aber weder Text
+  noch Reihenfolge ändern noch Einträge anlegen/löschen.
 
 ## API-Vertrag (alle Routen unter `/api`, aus Sicht des Express-Servers)
 
@@ -146,6 +156,7 @@ bleiben unverändert bei `/api/...` und `/uploads/...`.
 | POST | `/api/schedules/:id/cards/:cardId/duplicate` | Token | Karte duplizieren (gleiche Position, Titel + „ (Kopie)“). Antwort 201: neue Karte. |
 | DELETE | `/api/schedules/:id/cards/:cardId` | Token | Karte löschen (inkl. Upload-Bild, falls kein anderer Verweis). Antwort 204. |
 | POST | `/api/schedules/:id/uploads` | Token | `multipart/form-data`, Feld `image` (jpg/png/webp/gif, max 5 MB). Antwort 201: `{url}`. |
+| PATCH | `/api/share/:shareId/cards/:cardId/packing` | – (shareId) | Packliste abhaken: Body `{items: [{id, packed?, unpacked?}, …]}`. Ändert NUR `packed`/`unpacked` vorhandener Einträge (unbekannte `id`s werden ignoriert); Text/Reihenfolge/sonstige Kartenfelder bleiben unverändert. Antwort: `{packingList}`. |
 
 Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statuscode.
 404 bei unbekannter `id`/`shareId`/`cardId`.
@@ -212,6 +223,18 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   Höhe erst nach dem Laden feststeht). Das äußere `.card` (eigenes `overflow: hidden`,
   feste Slot-Höhe) klemmt optisch weiterhin ab, bis `grow` hinzukommt.
   `updateGrow()` wird nur für ausgeklappte Karten (`!card.collapsed`) aufgerufen.
+- **Packliste** (`js/packing.js`): Termin-Dialog hat einen Button „Packliste bearbeiten…“
+  (öffnet einen separaten Editor-Dialog: Einträge per „+ Eintrag“ hinzufügen, Text per
+  Stift-Icon umbenennen, per Mülleimer-Icon löschen, per Drag & Drop umsortieren – wirkt sich
+  erst beim Speichern des Termin-Dialogs endgültig aus). Hat eine Karte mindestens einen
+  Packlisten-Eintrag, zeigt sie zusätzlich ein Tüten-Icon „Packen“ in der Aktionsleiste – in
+  BEIDEN Modi (auch Nur-Lese), da gerade Personen mit dem Freigabelink typischerweise
+  diejenigen sind, die etwas mitbringen/zurückbringen müssen. Klick öffnet einen Abhak-Dialog
+  mit je zwei Checkboxen „Eingepackt“/„Ausgepackt“ pro Eintrag (unabhängig voneinander,
+  z. B. um nach dem Termin zu prüfen, ob alles wieder zurück ist). Im Bearbeitungsmodus läuft
+  das Abhaken über die normale Karten-PATCH-Route, im Nur-Lese-Modus über die eigene
+  shareId-Route `PATCH /api/share/:shareId/cards/:cardId/packing` (siehe API-Tabelle) – so
+  können auch Personen ohne Bearbeitungslink Einträge abhaken, aber nichts sonst ändern.
 - **Vollansicht (Maximieren):** Icon neben dem Einklapp-Pfeil öffnet die Karte groß in einem
   Dialog (`js/cardview.js`, reines Anzeigen, kein Bearbeiten) – Titel, Uhrzeit, Farbleiste/
   Hintergrundfarbe, Stummschaltungs-Hinweis, Bild und Beschreibung mit Links, unabhängig von
@@ -232,7 +255,8 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   mit „Kopieren“-Buttons.
 - Nur-Lese-Modus: kein Drag & Drop, kein Menü, keine Buttons zum Anlegen – nur Ansehen und
   Ein-/Ausklappen (lokal). Der Logo-Link zur Startseite ist deaktiviert, damit es keinen
-  Weg zur Plan-Erstellung gibt; „Exportieren“ bleibt verfügbar.
+  Weg zur Plan-Erstellung gibt; „Exportieren“ bleibt verfügbar. Packliste abhaken („Packen“)
+  bleibt ebenfalls verfügbar und wird gespeichert (siehe Abschnitt „Packliste“ oben).
 - **Beschreibung mit Links:** `https://…`-Adressen werden automatisch verlinkt, eigener
   Linktext per `[Text](https://…)`. Rendering ohne innerHTML (XSS-sicher), nur http(s),
   Links öffnen in neuem Tab (`rel="noopener noreferrer"`).
@@ -243,7 +267,9 @@ Serverfehler einheitlich als `{ "error": "beschreibung" }` mit passendem Statusc
   (Karten ohne `id`/`scheduleId`). „Plan aus JSON-Datei importieren…“ (Startseite) legt
   daraus einen NEUEN Plan mit eigenen Links an; Karten, die nicht ins Raster passen,
   werden gezählt übersprungen. Bild-URLs werden unverändert übernommen (funktionieren
-  nur, solange die Uploads auf demselben Server existieren).
+  nur, solange die Uploads auf demselben Server existieren). `packingList` wird mit
+  exportiert/importiert (ohne `id` – der Server vergibt beim Import neue ids), der
+  Packstatus (`packed`/`unpacked`) bleibt dabei erhalten.
 - Sprache der Oberfläche: **Deutsch**. Design: hell, freundlich, Trello-artige Karten mit
   abgerundeten Ecken und dezentem Schatten; Akzentfarbe Blau (#0079bf-Familie).
 

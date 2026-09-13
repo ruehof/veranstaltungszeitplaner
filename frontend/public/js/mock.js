@@ -189,6 +189,29 @@ if (mockEnabled) {
       return json({ schedule: publicSchedule, cards: cardsOf(schedule.id) });
     }
 
+    // PATCH /api/share/:shareId/cards/:cardId/packing – Packliste abhaken (Nur-Lese-Link)
+    if (method === "PATCH" && (m = url.match(/^\/api\/share\/([^/?]+)\/cards\/([^/?]+)\/packing$/))) {
+      const schedule = Object.values(state.schedules).find((s) => s.shareId === m[1]);
+      if (!schedule) return errorResponse(404, "Freigabelink nicht gefunden.");
+      const card = state.cards[m[2]];
+      if (!card || card.scheduleId !== schedule.id) return errorResponse(404, "Karte nicht gefunden.");
+      const body = bodyOf();
+      const items = Array.isArray(body.items) ? body.items : [];
+      const byId = new Map(items.filter((i) => i && typeof i.id === "string").map((i) => [i.id, i]));
+      card.packingList = (card.packingList || []).map((item) => {
+        const update = byId.get(item.id);
+        if (!update) return item;
+        return {
+          ...item,
+          packed: typeof update.packed === "boolean" ? update.packed : item.packed,
+          unpacked: typeof update.unpacked === "boolean" ? update.unpacked : item.unpacked,
+        };
+      });
+      card.updatedAt = nowIso();
+      persist();
+      return json({ packingList: card.packingList });
+    }
+
     // /api/schedules/:id …
     if ((m = url.match(/^\/api\/schedules\/([^/?]+)$/))) {
       const schedule = state.schedules[m[1]];
@@ -257,6 +280,7 @@ if (mockEnabled) {
         bgColor: body.bgColor || null,
         textColor: body.textColor || null,
         transparency: typeof body.transparency === "number" ? body.transparency : null,
+        packingList: Array.isArray(body.packingList) ? body.packingList : [],
         collapsed: Boolean(body.collapsed),
         muted: Boolean(body.muted),
         createdAt: nowIso(),
